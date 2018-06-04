@@ -1,0 +1,19 @@
+Compilation
+Preconditions:
+premake4 and cmake has to be installed.
+“lib” and “shared” folders have to be in the same directory as A0 folder
+
+Navigate to the A0 directory.
+
+To Compile run the following commands:
+premake4 gmake
+make
+
+To run the program run the following command:
+./A0
+
+I did not use any lab computer for this assignment
+
+Manual
+Everything is implemented according to the assignment specifications.
+

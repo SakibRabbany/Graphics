@@ -1,0 +1,23 @@
+Compilation
+Preconditions:
+premake4 and cmake has to be installed.
+“lib” and “shared” folders have to be in the same directory as A2 folder
+
+Navigate to the A2 directory.
+
+To Compile run the following commands:
+premake4 gmake
+make
+
+To run the program run the following command:
+./A2
+
+Tested the assignment on gl14.student.cs in the graphics lab.
+
+Manual
+Everything is implemented according to the assignment specifications.
+
+Additional Notes:
+Viewport mode is a bit buggy. One can click the mouse and drag to make
+a viewport, but to switch out of viewport mode, use the hotkeys.
+
