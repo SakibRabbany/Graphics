@@ -46,12 +46,16 @@ public:
     // Transformations
     glm::mat4 trans;
     glm::mat4 invtrans;
+    glm::mat4 world_mat;
     
     std::list<SceneNode*> children;
 
 	NodeType m_nodeType;
 	std::string m_name;
 	unsigned int m_nodeId;
+    
+    ////
+    void updateWorldMatrix(glm::mat4 transformation);
 
 
 private:

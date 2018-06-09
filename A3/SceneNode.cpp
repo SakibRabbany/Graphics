@@ -21,6 +21,7 @@ SceneNode::SceneNode(const std::string& name)
   : m_name(name),
 	m_nodeType(NodeType::SceneNode),
 	trans(mat4()),
+    world_mat(mat4()),
 	isSelected(false),
 	m_nodeId(nodeInstanceCount++)
 {
@@ -132,4 +133,12 @@ std::ostream & operator << (std::ostream & os, const SceneNode & node) {
 	os << "]";
 
 	return os;
+}
+
+
+void SceneNode::updateWorldMatrix(glm::mat4 transformation) {
+    this->world_mat = transformation * this->trans;
+    for (SceneNode* child : this->children) {
+        child->updateWorldMatrix(this->world_mat);
+    }
 }

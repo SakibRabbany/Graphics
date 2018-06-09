@@ -83,6 +83,7 @@ void A3::init()
 
 	initLightSources();
 
+    m_rootNode->updateWorldMatrix(mat4(1));
 
 	// Exiting the current scope calls delete automatically on meshConsolidator freeing
 	// all vertex data resources.  This is fine since we already copied this data to
@@ -344,8 +345,7 @@ void A3::guiLogic()
 static void updateShaderUniforms(
 		const ShaderProgram & shader,
 		const GeometryNode & node,
-		const glm::mat4 & viewMatrix,
-        const vector<mat4> & stack
+		const glm::mat4 & viewMatrix
 ) {
 
 	shader.enable();
@@ -355,11 +355,7 @@ static void updateShaderUniforms(
         
         mat4 modelView = mat4(1);
         
-        for (const mat4& transformation : stack) {
-            modelView = transformation * modelView;
-        }
-        
-        modelView = viewMatrix * modelView;
+        modelView = viewMatrix * node.world_mat;
 		glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(modelView));
 		CHECK_GL_ERRORS;
 
@@ -394,6 +390,7 @@ static void updateShaderUniforms(
  */
 void A3::draw() {
 
+    m_rootNode->updateWorldMatrix(mat4(1));
 	glEnable( GL_DEPTH_TEST );
 	renderSceneGraph(*m_rootNode);
 
@@ -421,48 +418,27 @@ void A3::renderSceneGraph(const SceneNode & root) {
 	// could put a set of mutually recursive functions in this class, which
 	// walk down the tree from nodes of different types.
     
-    vector<mat4> stack;
-    stack.push_back(root.get_transform());
-    drawPuppet(root, stack);
-    stack.pop_back();
-
-//    for (const SceneNode * node : root.children) {
-//
-//        if (node->m_nodeType != NodeType::GeometryNode)
-//            continue;
-//
-//        const GeometryNode * geometryNode = static_cast<const GeometryNode *>(node);
-//
-//        updateShaderUniforms(m_shader, *geometryNode, m_view);
-//
-//
-//        // Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
-//        BatchInfo batchInfo = m_batchInfoMap[geometryNode->meshId];
-//
-//        //-- Now render the mesh:
-//        m_shader.enable();
-//        glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
-//        m_shader.disable();
-//    }
+    
+    drawPuppet(*m_rootNode);
 
 	glBindVertexArray(0);
 	CHECK_GL_ERRORS;
 }
 
-void A3::drawPuppet(const SceneNode& root, vector<mat4>& stack) {
-//    stack.push_back(root.get_transform());
+
+void A3::drawPuppet(const SceneNode& root) {
     for (const SceneNode * node : root.children) {
+        
         
         if (node->m_nodeType != NodeType::GeometryNode)
             continue;
         
-        stack.push_back(node->get_transform());
-        
-        drawPuppet(*node, stack);
+        drawPuppet(*node);
+
         
         const GeometryNode * geometryNode = static_cast<const GeometryNode *>(node);
         
-        updateShaderUniforms(m_shader, *geometryNode, m_view, stack);
+        updateShaderUniforms(m_shader, *geometryNode, m_view);
         
         // Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
         BatchInfo batchInfo = m_batchInfoMap[geometryNode->meshId];
@@ -471,11 +447,7 @@ void A3::drawPuppet(const SceneNode& root, vector<mat4>& stack) {
         m_shader.enable();
         glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
         m_shader.disable();
-        cout << "drew: " << node->m_name << endl;
-        for (const mat4& mat : stack) {
-            cout << mat << endl;
-        }
-        stack.pop_back();
+        //        stack.pop_back();
 
     }
 //    stack.pop_back();
@@ -601,6 +573,22 @@ bool A3::keyInputEvent (
 			show_gui = !show_gui;
 			eventHandled = true;
 		}
+        if( key == GLFW_KEY_Q ) {
+            glfwSetWindowShouldClose(m_window, GL_TRUE);
+            eventHandled = true;
+        }
+        
+//        if( key == GLFW_KEY_EQUAL ) {
+//            rot_ang -= 1;
+//            m_rootNode->z->rotate('y', rot_ang);
+//            eventHandled = true;
+//        }
+//        
+//        if( key == GLFW_KEY_MINUS ) {
+//            rot_ang += 1;
+//            m_rootNode->children[0]->rotate('y', rot_ang);
+//            eventHandled = true;
+//        }
 	}
 	// Fill in with event handling code...
 

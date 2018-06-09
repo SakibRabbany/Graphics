@@ -78,5 +78,7 @@ protected:
 
 	std::shared_ptr<SceneNode> m_rootNode;
     
-    void drawPuppet(const SceneNode &node, std::vector<glm::mat4>& stack);
+    float rot_ang;
+    
+    void drawPuppet(const SceneNode &node);
 };
