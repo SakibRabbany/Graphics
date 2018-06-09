@@ -81,4 +81,5 @@ protected:
     float rot_ang;
     
     void drawPuppet(const SceneNode &node);
+    void update(SceneNode* root);
 };

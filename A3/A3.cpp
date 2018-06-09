@@ -84,6 +84,8 @@ void A3::init()
 	initLightSources();
 
     m_rootNode->updateWorldMatrix(mat4(1));
+    
+    rot_ang = 0.3;
 
 	// Exiting the current scope calls delete automatically on meshConsolidator freeing
 	// all vertex data resources.  This is fine since we already copied this data to
@@ -392,6 +394,8 @@ void A3::draw() {
 
     m_rootNode->updateWorldMatrix(mat4(1));
 	glEnable( GL_DEPTH_TEST );
+//    update(m_rootNode.get());
+
 	renderSceneGraph(*m_rootNode);
 
 
@@ -425,32 +429,42 @@ void A3::renderSceneGraph(const SceneNode & root) {
 	CHECK_GL_ERRORS;
 }
 
+void A3::update(SceneNode* root){
+    if (root->m_name == "left_ankle_joint") {
+        root->rotate('x', rot_ang);
+        return;
+    }
+//    if (root->m_name == "left_shoulder") {
+//        root->rotate('x', rot_ang);
+//        return;
+//    }
+    for (SceneNode* child: root->children) {
+        update(child);
+    }
+}
+
 
 void A3::drawPuppet(const SceneNode& root) {
+    
+    cout << root.m_name << endl;
+    
     for (const SceneNode * node : root.children) {
-        
-        
-        if (node->m_nodeType != NodeType::GeometryNode)
-            continue;
-        
+
+        if (node->m_nodeType == NodeType::GeometryNode){
+            const GeometryNode * geometryNode = static_cast<const GeometryNode *>(node);
+            
+            updateShaderUniforms(m_shader, *geometryNode, m_view);
+            
+            // Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
+            BatchInfo batchInfo = m_batchInfoMap[geometryNode->meshId];
+            
+            //-- Now render the mesh:
+            m_shader.enable();
+            glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
+            m_shader.disable();
+        }
         drawPuppet(*node);
-
-        
-        const GeometryNode * geometryNode = static_cast<const GeometryNode *>(node);
-        
-        updateShaderUniforms(m_shader, *geometryNode, m_view);
-        
-        // Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
-        BatchInfo batchInfo = m_batchInfoMap[geometryNode->meshId];
-        
-        //-- Now render the mesh:
-        m_shader.enable();
-        glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
-        m_shader.disable();
-        //        stack.pop_back();
-
     }
-//    stack.pop_back();
 }
 
 //----------------------------------------------------------------------------------------
