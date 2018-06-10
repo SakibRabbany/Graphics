@@ -16,4 +16,7 @@ public:
 
 
 	JointRange m_joint_x, m_joint_y;
+    float angle_x, angle_y;
+    
+    virtual void rotate(char axis, float angle);
 };

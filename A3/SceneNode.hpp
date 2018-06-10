@@ -34,7 +34,8 @@ public:
     void remove_child(SceneNode* child);
 
 	//-- Transformations:
-    void rotate(char axis, float angle);
+    virtual void rotate(char axis, float angle);
+    void rotate(glm::mat4 mat);
     void scale(const glm::vec3& amount);
     void translate(const glm::vec3& amount);
 
@@ -53,6 +54,7 @@ public:
 	NodeType m_nodeType;
 	std::string m_name;
 	unsigned int m_nodeId;
+    SceneNode* parent;
     
     ////
     void updateWorldMatrix(glm::mat4 transformation);

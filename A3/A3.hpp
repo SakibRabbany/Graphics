@@ -6,6 +6,7 @@
 #include "cs488-framework/MeshConsolidator.hpp"
 
 #include "SceneNode.hpp"
+#include "JointNode.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -78,8 +79,67 @@ protected:
 
 	std::shared_ptr<SceneNode> m_rootNode;
     
+    ///////////////
+    // options
+    
+    bool frontface_culling;
+    bool backface_culling;
+    bool z_buffer;
+    bool circle;
+    
+    void performFaceCulling();
+    void finishFaceCulling();
+    
+    // user interaction mode
+    int user_mode;
+    
+    // mouse interaction
+    bool left_mouse_pressed;
+    bool middle_mouse_pressed;
+    bool right_mouse_pressed;
+    
+    glm::vec2 left_initial;
+    glm::vec2 middle_initial;
+    glm::vec2 right_initial;
+    
+    glm::vec2 initial_click;
+    
+    glm::vec2 m_mouse_GL_coordinate;
+
+    glm::vec3 puppet_translation;
+    
+    glm::mat4 puppet_model_matrix;
+    
+    JointNode* neck_joint;
+    SceneNode* torso;
+    
+    void resetPosition();
+    void resetOrientation();
+    
+    void updateSceneGraph();
+    
+    void findJointNode(std::string joint_name, SceneNode* root);
+    
     float rot_ang;
     
     void drawPuppet(const SceneNode &node);
     void update(SceneNode* root);
+    void updateParentPointers(SceneNode* parent);
+    
+    //// trackball
+    
+    glm::vec2 rotation_click;
+    glm::vec2 initial_rotation_click;
+    
+    glm::mat4 initial_torso_transformation;
+
+    
+    void vCalcRotVec(float fNewX, float fNewY,
+                     float fOldX, float fOldY,
+                     float fDiameter,
+                     float *fVecX, float *fVecY, float *fVecZ);
+    void vAxisRotMatrix(float fVecX, float fVecY, float fVecZ, glm::mat4& mNewMat);
+    
+    void rotateTorso(float oldx, float newx, float oldy, float newy);
+
 };

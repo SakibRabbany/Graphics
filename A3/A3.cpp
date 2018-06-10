@@ -13,6 +13,8 @@ using namespace std;
 #include <glm/gtx/io.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <math.h>
+
 using namespace glm;
 
 static bool show_gui = true;
@@ -82,8 +84,28 @@ void A3::init()
 	initViewMatrix();
 
 	initLightSources();
+    
+    puppet_model_matrix = mat4(1);
 
-    m_rootNode->updateWorldMatrix(mat4(1));
+    m_rootNode->updateWorldMatrix(puppet_model_matrix);
+    
+    frontface_culling = false;
+    backface_culling = false;
+    z_buffer = true;
+    circle = false;
+    user_mode = 0;
+    
+    left_mouse_pressed = false;
+    middle_mouse_pressed = false;
+    right_mouse_pressed = false;
+    
+    puppet_translation = vec3(0,0,0);
+    
+    findJointNode("neck_joint", m_rootNode.get());
+    
+    initial_torso_transformation = torso->trans;
+    
+    updateParentPointers(nullptr);
     
     rot_ang = 0.3;
 
@@ -328,7 +350,41 @@ void A3::guiLogic()
 	ImGui::Begin("Properties", &showDebugWindow, ImVec2(100,100), opacity,
 			windowFlags);
 
-
+    
+    ImGui::BeginMainMenuBar();
+        if (ImGui::BeginMenu("Application")) {
+            if (ImGui::MenuItem("Reset Position", "I")) {
+                resetPosition();
+            }
+            if (ImGui::MenuItem("Reset Orientation", "O")) {
+                resetOrientation();
+            }
+            if (ImGui::MenuItem("Reset Joints", "N")) {
+            }
+            if (ImGui::MenuItem("Reset All", "A")) {
+                resetOrientation();
+                resetPosition();
+            }
+            if (ImGui::MenuItem("Quit", "Q")) {
+                glfwSetWindowShouldClose(m_window, GL_TRUE);
+            }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Edit")) {
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Options")) {
+            if (ImGui::MenuItem("Circle", "C", &circle, true)) {
+            }
+            if (ImGui::MenuItem("Z-buffer", "Z", &z_buffer, true)) {
+            }
+            if (ImGui::MenuItem("Backface Culling", "B", &backface_culling, true)) {
+            }
+            if (ImGui::MenuItem("Frontface Culling", "F", &frontface_culling, true)) {
+            }
+            ImGui::EndMenu();
+        }
+    ImGui::EndMainMenuBar();
 		// Add more gui elements here here ...
 
 
@@ -338,6 +394,25 @@ void A3::guiLogic()
 		}
 
 		ImGui::Text( "Framerate: %.1f FPS", ImGui::GetIO().Framerate );
+    
+    ImGui::Text("Position/Orientation   (R):");
+    ImGui::SameLine();
+    ImGui::PushID( 0 );
+    if( ImGui::RadioButton( "##   Rotate:", &user_mode, 0 ) ) {
+        // Select this colour.
+        //active_col = colour1;
+        cout << "User Mode: " << user_mode << endl;
+    }
+    ImGui::PopID();
+    ImGui::Text("Joints                 (J):");
+    ImGui::SameLine();
+    ImGui::PushID( 1 );
+    if( ImGui::RadioButton( "##   Translate:", &user_mode, 1 ) ) {
+        // Select this colour.
+        //active_col = colour2;
+        cout << "User Mode: " << user_mode << endl;
+    }
+    ImGui::PopID();
 
 	ImGui::End();
 }
@@ -392,15 +467,24 @@ static void updateShaderUniforms(
  */
 void A3::draw() {
 
-    m_rootNode->updateWorldMatrix(mat4(1));
-	glEnable( GL_DEPTH_TEST );
+    
+    if (z_buffer)
+        glEnable( GL_DEPTH_TEST );
+    
+    performFaceCulling();
+
+    
 //    update(m_rootNode.get());
 
 	renderSceneGraph(*m_rootNode);
 
+    finishFaceCulling();
 
-	glDisable( GL_DEPTH_TEST );
-	renderArcCircle();
+    if (z_buffer)
+        glDisable( GL_DEPTH_TEST );
+    
+    if (circle)
+        renderArcCircle();
 }
 
 //----------------------------------------------------------------------------------------
@@ -421,18 +505,17 @@ void A3::renderSceneGraph(const SceneNode & root) {
 	// subclasses, that renders the subtree rooted at every node.  Or you
 	// could put a set of mutually recursive functions in this class, which
 	// walk down the tree from nodes of different types.
-    
-    
+//    update(m_rootNode.get());
+    m_rootNode->updateWorldMatrix(mat4(1));
     drawPuppet(*m_rootNode);
-
+    
 	glBindVertexArray(0);
 	CHECK_GL_ERRORS;
 }
 
 void A3::update(SceneNode* root){
-    if (root->m_name == "left_ankle_joint") {
-        root->rotate('x', rot_ang);
-        return;
+    if (root->m_name == "root") {
+        root->rotate('y', rot_ang);
     }
 //    if (root->m_name == "left_shoulder") {
 //        root->rotate('x', rot_ang);
@@ -445,8 +528,10 @@ void A3::update(SceneNode* root){
 
 
 void A3::drawPuppet(const SceneNode& root) {
-    
-    cout << root.m_name << endl;
+    if(root.m_nodeType == NodeType::JointNode) {
+        cout << root.m_name << endl;
+        cout << root.trans << endl;
+    }
     
     for (const SceneNode * node : root.children) {
 
@@ -521,7 +606,51 @@ bool A3::mouseMoveEvent (
 		double yPos
 ) {
 	bool eventHandled(false);
+    
+    m_mouse_GL_coordinate = vec2 ((2.0f * xPos) / m_windowWidth - 1.0f,
+                                  1.0f - ( (2.0f * yPos) / m_windowHeight));
+    rotation_click = vec2(xPos, yPos);
+    
+    vec2 delta = m_mouse_GL_coordinate - initial_click;
+    if (user_mode == 0) {
+        if (left_mouse_pressed) {
+            puppet_translation.x += delta.x;
+            puppet_translation.y += delta.y;
+            m_rootNode->translate(vec3(delta.x, delta.y, 0));
+            cout << puppet_translation << endl;
+            updateSceneGraph();
+        }
+        if (middle_mouse_pressed) {
+            puppet_translation.z -= delta.y;
+            m_rootNode->translate(vec3(0, 0, -delta.y));
+            updateSceneGraph();
+        }
+        if (right_mouse_pressed) {
+            rotateTorso(initial_rotation_click.x, rotation_click.x, initial_rotation_click.y, rotation_click.y);
+            updateSceneGraph();
+        }
+    }
+    
+    if (user_mode == 1) {
+        if (left_mouse_pressed) {
+            // picking
+        }
+        if (middle_mouse_pressed) {
+            // change selected joint angles
+        }
+        if (right_mouse_pressed) {
+            
+            neck_joint->rotate('x', -delta.y*10);
+            neck_joint->rotate('y', delta.x*10);
 
+            cout << puppet_translation << endl;
+            updateSceneGraph();
+        }
+    }
+    
+    initial_click = m_mouse_GL_coordinate;
+    initial_rotation_click = rotation_click;
+    
 	// Fill in with event handling code...
 
 	return eventHandled;
@@ -538,7 +667,41 @@ bool A3::mouseButtonInputEvent (
 ) {
 	bool eventHandled(false);
 
-	// Fill in with event handling code...
+	
+    if (actions == GLFW_PRESS) {
+        initial_click = m_mouse_GL_coordinate;
+        if (button == GLFW_MOUSE_BUTTON_LEFT) {
+            left_mouse_pressed = true;
+//            left_initial = m_mouse_GL_coordinate;
+            cout << "Left Mouse Button clicked" << endl;
+        }
+        if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
+            middle_mouse_pressed = true;
+//            middle_initial = m_mouse_GL_coordinate;
+            cout << "Middle Mouse Button clicked:" << endl;
+        }
+        if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+            right_mouse_pressed = true;
+//            right_initial = m_mouse_GL_coordinate;
+            initial_rotation_click = rotation_click;
+            cout << "Right Mouse Button clicked:" << endl;
+        }
+    }
+    
+    if (actions == GLFW_RELEASE) {
+        if (button == GLFW_MOUSE_BUTTON_LEFT) {
+            left_mouse_pressed = false;
+            cout << "Left Mouse Button released:" << endl;
+        }
+        if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
+            middle_mouse_pressed = false;
+            cout << "Middle Mouse Button released:" << endl;
+        }
+        if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+            right_mouse_pressed = false;
+            cout << "Right Mouse Button released:" << endl;
+        }
+    }
 
 	return eventHandled;
 }
@@ -591,6 +754,43 @@ bool A3::keyInputEvent (
             glfwSetWindowShouldClose(m_window, GL_TRUE);
             eventHandled = true;
         }
+        if( key == GLFW_KEY_C ) {
+            circle = !circle;
+            eventHandled = true;
+        }
+        if( key == GLFW_KEY_Z ) {
+            z_buffer = !z_buffer;
+            eventHandled = true;
+        }
+        if( key == GLFW_KEY_B ) {
+            backface_culling = !backface_culling;
+            eventHandled = true;
+        }
+        if( key == GLFW_KEY_F ) {
+            frontface_culling = !frontface_culling;
+            eventHandled = true;
+        }
+        if( key == GLFW_KEY_J ) {
+            user_mode = 1;
+            eventHandled = true;
+        }
+        if( key == GLFW_KEY_R ) {
+            user_mode = 0;
+            eventHandled = true;
+        }
+        if( key == GLFW_KEY_I ) {
+            resetPosition();
+            eventHandled = true;
+        }
+        if( key == GLFW_KEY_O ) {
+            resetOrientation();
+            eventHandled = true;
+        }
+        if( key == GLFW_KEY_A ) {
+            resetOrientation();
+            resetPosition();
+            eventHandled = true;
+        }
         
 //        if( key == GLFW_KEY_EQUAL ) {
 //            rot_ang -= 1;
@@ -608,3 +808,257 @@ bool A3::keyInputEvent (
 
 	return eventHandled;
 }
+
+void A3::performFaceCulling(){
+    glEnable(GL_CULL_FACE);
+    if (frontface_culling and backface_culling) {
+        glCullFace(GL_FRONT_AND_BACK);
+    } else if (frontface_culling) {
+        glCullFace(GL_FRONT);
+    } else if (backface_culling){
+        glCullFace(GL_BACK);
+    } else {
+        glDisable(GL_CULL_FACE);
+    }
+}
+
+void A3::finishFaceCulling(){
+    glDisable(GL_CULL_FACE);
+}
+
+void A3::updateSceneGraph () {    
+    m_rootNode->updateWorldMatrix(mat4(1));
+}
+
+void A3::resetPosition() {
+    m_rootNode->translate(-puppet_translation);
+    updateSceneGraph();
+    puppet_translation = vec3(0,0,0);
+}
+
+void A3::findJointNode(std::string joint_name, SceneNode* root) {
+    if (root->m_name == "neck_joint") {
+        neck_joint = (JointNode*)root;
+    }
+    if (root->m_name == "torso") {
+        torso = root;
+    }
+    for (SceneNode* child : root->children) {
+        findJointNode(joint_name, child);
+    }
+}
+
+
+void A3::resetOrientation(){
+    torso->trans = initial_torso_transformation;
+    updateSceneGraph();
+}
+
+void A3::updateParentPointers(SceneNode* parent, SceneNode* root){
+    root->parent = parent;
+    for(SceneNode* child: root->children) {
+        updateParentPointers(root, child);
+    }
+}
+///// trackball
+
+
+
+
+/*******************************************************
+ *
+ * void vCalcRotVec(float fNewX, float fNewY,
+ *                  float fOldX, float fOldY,
+ *                  float fDiameter,
+ *                  float *fVecX, float *fVecY, float *fVecZ);
+ *
+ *    Calculates a rotation vector based on mouse motion over
+ *    a virtual trackball.
+ *
+ *    The fNew and fOld mouse positions
+ *    should be in 'trackball' space. That is, they have been
+ *    transformed into a coordinate system centered at the middle
+ *    of the trackball. fNew, fOld, and fDiameter must all be specified
+ *    in the same units (pixels for example).
+ *
+ * Parameters: fNewX, fNewY - New mouse position in trackball space.
+ *                            This is the second point along direction
+ *                            of rotation.
+ *             fOldX, fOldY - Old mouse position in trackball space.
+ *                            This is the first point along direction
+ *                            of rotation.
+ *             fDiameter - Diameter of the trackball. This should
+ *                         be specified in the same units as fNew and fOld.
+ *                         (ie, usually pixels if fNew and fOld are transformed
+ *                         mouse positions)
+ *             fVec - The output rotation vector. The length of the vector
+ *                    is proportional to the angle of rotation.
+ *
+ *******************************************************/
+void A3::vCalcRotVec(float fNewX, float fNewY,
+                 float fOldX, float fOldY,
+                 float fDiameter,
+                 float *fVecX, float *fVecY, float *fVecZ) {
+    long  nXOrigin, nYOrigin;
+    float fNewVecX, fNewVecY, fNewVecZ,        /* Vector corresponding to new mouse location */
+    fOldVecX, fOldVecY, fOldVecZ,        /* Vector corresponding to old mouse location */
+    fLength;
+    
+    /* Vector pointing from center of virtual trackball to
+     * new mouse position
+     */
+    fNewVecX    = fNewX * 2.0 / fDiameter;
+    fNewVecY    = fNewY * 2.0 / fDiameter;
+    fNewVecZ    = (1.0 - fNewVecX * fNewVecX - fNewVecY * fNewVecY);
+    
+    /* If the Z component is less than 0, the mouse point
+     * falls outside of the trackball which is interpreted
+     * as rotation about the Z axis.
+     */
+    if (fNewVecZ < 0.0) {
+        fLength = sqrt(1.0 - fNewVecZ);
+        fNewVecZ  = 0.0;
+        fNewVecX /= fLength;
+        fNewVecY /= fLength;
+    } else {
+        fNewVecZ = sqrt(fNewVecZ);
+    }
+    
+    /* Vector pointing from center of virtual trackball to
+     * old mouse position
+     */
+    fOldVecX    = fOldX * 2.0 / fDiameter;
+    fOldVecY    = fOldY * 2.0 / fDiameter;
+    fOldVecZ    = (1.0 - fOldVecX * fOldVecX - fOldVecY * fOldVecY);
+    
+    /* If the Z component is less than 0, the mouse point
+     * falls outside of the trackball which is interpreted
+     * as rotation about the Z axis.
+     */
+    if (fOldVecZ < 0.0) {
+        fLength = sqrt(1.0 - fOldVecZ);
+        fOldVecZ  = 0.0;
+        fOldVecX /= fLength;
+        fOldVecY /= fLength;
+    } else {
+        fOldVecZ = sqrt(fOldVecZ);
+    }
+    
+    /* Generate rotation vector by calculating cross product:
+     *
+     * fOldVec x fNewVec.
+     *
+     * The rotation vector is the axis of rotation
+     * and is non-unit length since the length of a crossproduct
+     * is related to the angle between fOldVec and fNewVec which we need
+     * in order to perform the rotation.
+     */
+    *fVecX = fOldVecY * fNewVecZ - fNewVecY * fOldVecZ;
+    *fVecY = fOldVecZ * fNewVecX - fNewVecZ * fOldVecX;
+    *fVecZ = fOldVecX * fNewVecY - fNewVecX * fOldVecY;
+}
+
+/*******************************************************
+ * void vAxisRotMatrix(float fVecX, float fVecY, float fVecZ, Matrix mNewMat)
+ *
+ *    Calculate the rotation matrix for rotation about an arbitrary axis.
+ *
+ *    The axis of rotation is specified by (fVecX,fVecY,fVecZ). The length
+ *    of the vector is the amount to rotate by.
+ *
+ * Parameters: fVecX,fVecY,fVecZ - Axis of rotation
+ *             mNewMat - Output matrix of rotation in column-major format
+ *                       (ie, translation components are in column 3 on rows
+ *                       0,1, and 2).
+ *
+ *******************************************************/
+void A3::vAxisRotMatrix(float fVecX, float fVecY, float fVecZ, mat4& mNewMat) {
+    float fRadians, fInvLength, fNewVecX, fNewVecY, fNewVecZ;
+    
+    /* Find the length of the vector which is the angle of rotation
+     * (in radians)
+     */
+    fRadians = sqrt(fVecX * fVecX + fVecY * fVecY + fVecZ * fVecZ);
+    
+    /* If the vector has zero length - return the identity matrix */
+    if (fRadians > -0.000001 && fRadians < 0.000001) {
+        mNewMat = mat4(1);
+        return;
+    }
+    
+    /* Normalize the rotation vector now in preparation for making
+     * rotation matrix.
+     */
+    fInvLength = 1 / fRadians;
+    fNewVecX   = fVecX * fInvLength;
+    fNewVecY   = fVecY * fInvLength;
+    fNewVecZ   = fVecZ * fInvLength;
+    
+    /* Create the arbitrary axis rotation matrix */
+    double dSinAlpha = sin(fRadians);
+    double dCosAlpha = cos(fRadians);
+    double dT = 1 - dCosAlpha;
+    
+    mNewMat[0][0] = dCosAlpha + fNewVecX*fNewVecX*dT;
+    mNewMat[0][1] = fNewVecX*fNewVecY*dT + fNewVecZ*dSinAlpha;
+    mNewMat[0][2] = fNewVecX*fNewVecZ*dT - fNewVecY*dSinAlpha;
+    mNewMat[0][3] = 0;
+    
+    mNewMat[1][0] = fNewVecX*fNewVecY*dT - dSinAlpha*fNewVecZ;
+    mNewMat[1][1] = dCosAlpha + fNewVecY*fNewVecY*dT;
+    mNewMat[1][2] = fNewVecY*fNewVecZ*dT + dSinAlpha*fNewVecX;
+    mNewMat[1][3] = 0;
+    
+    mNewMat[2][0] = fNewVecZ*fNewVecX*dT + dSinAlpha*fNewVecY;
+    mNewMat[2][1] = fNewVecZ*fNewVecY*dT - dSinAlpha*fNewVecX;
+    mNewMat[2][2] = dCosAlpha + fNewVecZ*fNewVecZ*dT;
+    mNewMat[2][3] = 0;
+    
+    mNewMat[3][0] = 0;
+    mNewMat[3][1] = 0;
+    mNewMat[3][2] = 0;
+    mNewMat[3][3] = 1;
+}
+
+void A3::rotateTorso(float oldx, float newx, float oldy, float newy){
+    float  fRotVecX, fRotVecY, fRotVecZ;
+    mat4 mNewMat;
+    
+    /*
+     * Track ball rotations are being used.
+     */
+    
+    float fDiameter;
+    int iCenterX, iCenterY;
+    float fNewModX, fNewModY, fOldModX, fOldModY;
+    
+    /* vCalcRotVec expects new and old positions in relation to the center of the
+     * trackball circle which is centered in the middle of the window and
+     * half the smaller of nWinWidth or nWinHeight.
+     */
+//    fDiameter = (nWinWidth < nWinHeight) ? nWinWidth * 0.5 : nWinHeight * 0.5;
+    fDiameter = (m_windowWidth < m_windowHeight) ? m_windowWidth * 0.5 : m_windowHeight * 0.5;
+    iCenterX = m_windowWidth/2;
+    iCenterY = m_windowHeight/2;
+    fOldModX = oldx - iCenterX;
+    fOldModY = oldy - iCenterY;
+    fNewModX = newx - iCenterX;
+    fNewModY = newy - iCenterY;
+    
+    vCalcRotVec(fNewModX, fNewModY,
+                fOldModX, fOldModY,
+                fDiameter,
+                &fRotVecX, &fRotVecY, &fRotVecZ);
+    /* Negate Y component since Y axis increases downwards
+     * in screen space and upwards in OpenGL.
+     */
+    vAxisRotMatrix(fRotVecX, -fRotVecY, fRotVecZ, mNewMat);
+    
+    // Since all these matrices are meant to be loaded
+    // into the OpenGL matrix stack, we need to transpose the
+    // rotation matrix (since OpenGL wants rows stored
+    // in columns)
+    mNewMat = transpose(mNewMat);
+    torso->rotate(mNewMat);
+}
+

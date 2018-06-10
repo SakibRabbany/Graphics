@@ -6,7 +6,28 @@ rootnode = gr.node('root')
     rootnode:scale( 0.25, 0.25, 0.25 )
     rootnode:translate(0.0, 0.0, -1.0)
 
-joint_angle = {-25, 0, 25}
+shoulder_joint_x = {-180, 0, 20}
+shoulder_joint_y = {-10, 0, 10}
+
+elbow_joint_x = {-160, 0, 0}
+elbow_joint_y = {-30, 0, 30}
+
+wrist_joint_x = {-15, 0, 80}
+wrist_joint_y = {-20, 0, 10}
+
+hip_joint_x = {-110, 0, 20}
+hip_joint_y = {-5, 0, 5}
+
+knee_joint_x = {0, 0, 100}
+knee_joint_y = {0, 0, 0}
+
+ankle_joint_x = {-10, 0, 10}
+ankle_joint_y = {-15, 0, 15}
+
+neck_joint_x = {-30, 0, 20}
+neck_joint_y = {-90, 0, 90}
+
+
 
 red = gr.material({1.0, 0.0, 0.0}, {0.1, 0.1, 0.1}, 10)
 blue = gr.material({0.0, 0.0, 1.0}, {0.1, 0.1, 0.1}, 10)
@@ -206,7 +227,7 @@ left_shoulder:scale(0.25, 1, 0.4)
 
 left_shoulder:translate(shoulder_width/2-0.1, 0, 0)
 
-left_shoulder_joint = gr.joint('left_shoulder_joint', joint_angle, joint_angle)
+left_shoulder_joint = gr.joint('left_shoulder_joint', shoulder_joint_x, shoulder_joint_y)
 left_shoulder:add_child(left_shoulder_joint)
 left_shoulder_joint:add_child(left_upper_arm)
 
@@ -217,7 +238,7 @@ right_shoulder:set_material(green)
 right_shoulder:scale(0.25, 1, 0.4)
 right_shoulder:translate(-(shoulder_width/2-0.1), 0, 0)
 
-right_shoulder_joint = gr.joint('right_shoulder_joint', joint_angle, joint_angle)
+right_shoulder_joint = gr.joint('right_shoulder_joint', shoulder_joint_x, shoulder_joint_y)
 right_shoulder:add_child(right_shoulder_joint)
 right_shoulder_joint:add_child(right_upper_arm)
 
@@ -228,7 +249,7 @@ left_elbow:set_material(green)
 left_elbow:scale(0.75, 0.2, 0.75)
 left_elbow:translate(0, -0.47, 0)
 
-left_elbow_joint = gr.joint('left_elbow_joint', joint_angle, joint_angle)
+left_elbow_joint = gr.joint('left_elbow_joint', elbow_joint_x, elbow_joint_y)
 left_elbow:add_child(left_elbow_joint)
 left_elbow_joint:add_child(left_fore_arm)
 
@@ -240,7 +261,7 @@ right_elbow:set_material(green)
 right_elbow:scale(0.75, 0.2, 0.75)
 right_elbow:translate(0, -0.47, 0)
 
-right_elbow_joint = gr.joint('right_elbow_joint', joint_angle, joint_angle)
+right_elbow_joint = gr.joint('right_elbow_joint', elbow_joint_x, elbow_joint_y)
 right_elbow:add_child(right_elbow_joint)
 right_elbow_joint:add_child(right_fore_arm)
 
@@ -252,7 +273,7 @@ left_wrist:set_material(green)
 left_wrist:scale(0.75, 0.175, 0.75)
 left_wrist:translate(0, -0.47, 0)
 
-left_wrist_joint = gr.joint('left_wrist_joint', joint_angle, joint_angle)
+left_wrist_joint = gr.joint('left_wrist_joint', wrist_joint_x, wrist_joint_y)
 left_wrist:add_child(left_wrist_joint)
 left_wrist_joint:add_child(left_hand)
 
@@ -264,7 +285,7 @@ right_wrist:set_material(green)
 right_wrist:scale(0.75, 0.175, 0.75)
 right_wrist:translate(0, -0.47, 0)
 
-right_wrist_joint = gr.joint('right_wrist_joint', joint_angle, joint_angle)
+right_wrist_joint = gr.joint('right_wrist_joint', wrist_joint_x, wrist_joint_y)
 right_wrist:add_child(right_wrist_joint)
 right_wrist_joint:add_child(right_hand)
 
@@ -276,7 +297,7 @@ left_hip:set_material(green)
 left_hip:scale(0.3, 1, 0.33)
 left_hip:translate((hip_width/4 + thigh_width/4 - 0.1), 0, 0)
 
-left_hip_joint = gr.joint('left_hip_joint', joint_angle, joint_angle)
+left_hip_joint = gr.joint('left_hip_joint', hip_joint_x, hip_joint_y)
 left_hip:add_child(left_hip_joint)
 left_hip_joint:add_child(left_thigh)
 
@@ -288,7 +309,7 @@ right_hip:set_material(green)
 right_hip:scale(0.3, 1, 0.33)
 right_hip:translate(-(hip_width/4 + thigh_width/4 - 0.1), 0, 0)
 
-right_hip_joint = gr.joint('right_hip_joint', joint_angle, joint_angle)
+right_hip_joint = gr.joint('right_hip_joint', hip_joint_x, hip_joint_y)
 right_hip:add_child(right_hip_joint)
 right_hip_joint:add_child(right_thigh)
 
@@ -300,7 +321,7 @@ left_knee:set_material(green)
 left_knee:scale(0.6, 0.2, 0.6)
 left_knee:translate(0, -0.5, 0)
 
-left_knee_joint = gr.joint('left_knee_joint', joint_angle, joint_angle)
+left_knee_joint = gr.joint('left_knee_joint', knee_joint_x, knee_joint_y)
 left_knee:add_child(left_knee_joint)
 left_knee_joint:add_child(left_calf)
 
@@ -311,7 +332,7 @@ right_knee:set_material(green)
 right_knee:scale(0.6, 0.2, 0.6)
 right_knee:translate(0, -0.5, 0)
 
-right_knee_joint = gr.joint('right_knee_joint', joint_angle, joint_angle)
+right_knee_joint = gr.joint('right_knee_joint', knee_joint_x, knee_joint_y)
 right_knee:add_child(right_knee_joint)
 right_knee_joint:add_child(right_calf)
 
@@ -323,7 +344,7 @@ left_ankle:set_material(green)
 left_ankle:scale(0.6, 0.2, 0.6)
 left_ankle:translate(0, -0.5, 0)
 
-left_ankle_joint = gr.joint('left_ankle_joint', joint_angle, joint_angle)
+left_ankle_joint = gr.joint('left_ankle_joint', ankle_joint_x, ankle_joint_y)
 left_ankle:add_child(left_ankle_joint)
 left_ankle_joint:add_child(left_foot)
 
@@ -335,7 +356,7 @@ right_ankle:set_material(green)
 right_ankle:scale(0.6, 0.2, 0.6)
 right_ankle:translate(0, -0.5, 0)
 
-right_ankle_joint = gr.joint('right_ankle_joint', joint_angle, joint_angle)
+right_ankle_joint = gr.joint('right_ankle_joint', ankle_joint_x, ankle_joint_y)
 right_ankle:add_child(right_ankle_joint)
 right_ankle_joint:add_child(right_foot)
 
@@ -347,7 +368,7 @@ neck_mesh:set_material(green)
 neck_mesh:scale(0.8, 0.5, 0.6)
 neck_mesh:translate(0, 0.5, 0)
 
-neck_joint = gr.joint('neck_joint', joint_angle, joint_angle)
+neck_joint = gr.joint('neck_joint', neck_joint_x, neck_joint_y)
 neck_mesh:add_child(neck_joint)
 neck_joint:add_child(head)
 

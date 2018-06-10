@@ -142,3 +142,7 @@ void SceneNode::updateWorldMatrix(glm::mat4 transformation) {
         child->updateWorldMatrix(this->world_mat);
     }
 }
+
+void SceneNode::rotate(glm::mat4 mat) {
+    trans = mat * trans;
+}
