@@ -124,7 +124,7 @@ protected:
     
     void drawPuppet(const SceneNode &node);
     void update(SceneNode* root);
-    void updateParentPointers(SceneNode* parent);
+    void updateParentPointers(SceneNode* parent, SceneNode* root);
     
     //// trackball
     

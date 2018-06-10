@@ -105,7 +105,7 @@ void A3::init()
     
     initial_torso_transformation = torso->trans;
     
-    updateParentPointers(nullptr);
+    updateParentPointers(nullptr, m_rootNode.get());
     
     rot_ang = 0.3;
 
