@@ -423,7 +423,7 @@ void A3::guiLogic()
 
 		ImGui::Text( "Framerate: %.1f FPS", ImGui::GetIO().Framerate );
     
-    ImGui::Text("Position/Orientation   (R):");
+    ImGui::Text("Position/Orientation   (P):");
     ImGui::SameLine();
     ImGui::PushID( 0 );
     if( ImGui::RadioButton( "##   Rotate:", &user_mode, 0 ) ) {
@@ -837,6 +837,7 @@ bool A3::keyInputEvent (
         if( key == GLFW_KEY_A ) {
             resetOrientation();
             resetPosition();
+            resetJoints();
             eventHandled = true;
         }
         if( key == GLFW_KEY_U ) {
@@ -845,6 +846,10 @@ bool A3::keyInputEvent (
         }
         if( key == GLFW_KEY_R ) {
             doRedo();
+            eventHandled = true;
+        }
+        if( key == GLFW_KEY_N ) {
+            resetJoints();
             eventHandled = true;
         }
 	}
