@@ -909,7 +909,7 @@ void A3::selectJoint(){
     
     glfwGetCursorPos(m_window, &mx, &my);
     
-    glReadPixels(mx*2, m_framebufferHeight - (my*2) ,1,1, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glReadPixels(mx*(m_framebufferWidth/m_windowWidth), m_framebufferHeight - (my*(m_framebufferHeight/m_windowHeight)) ,1,1, GL_RGBA, GL_UNSIGNED_BYTE, data);
     
     id = colorToId(data);
     
