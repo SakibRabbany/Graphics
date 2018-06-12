@@ -22,6 +22,7 @@ static bool show_gui = true;
 const size_t CIRCLE_PTS = 48;
 
 
+
 //----------------------------------------------------------------------------------------
 // Constructor
 A3::A3(const std::string & luaSceneFile)
@@ -110,6 +111,12 @@ void A3::init()
     updateParentPointers(nullptr, m_rootNode.get());
     
     populateNodeVector(m_rootNode.get());
+    
+    undo_stack.push_back(makeState());
+    
+    curr_state_index = 0;
+    
+    scene_graph_changed = false;
     
     rot_ang = 0.3;
 
@@ -371,10 +378,12 @@ void A3::guiLogic()
                 resetOrientation();
             }
             if (ImGui::MenuItem("Reset Joints", "N")) {
+                resetJoints();
             }
             if (ImGui::MenuItem("Reset All", "A")) {
                 resetOrientation();
                 resetPosition();
+                resetJoints();
             }
             if (ImGui::MenuItem("Quit", "Q")) {
                 glfwSetWindowShouldClose(m_window, GL_TRUE);
@@ -382,6 +391,12 @@ void A3::guiLogic()
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Edit")) {
+            if (ImGui::MenuItem("Undo", "U")) {
+                doUndo();
+            }
+            if (ImGui::MenuItem("Redo", "R")) {
+                doRedo();
+            }
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Options")) {
@@ -658,13 +673,13 @@ bool A3::mouseMoveEvent (
             // picking
         }
         if (middle_mouse_pressed) {
-            rotateSelectedjoints(delta.y*10);
+            scene_graph_changed = true;
             updateSceneGraph();
         }
         if (right_mouse_pressed) {
-            neck_joint->rotate('x', -delta.y*10);
-            neck_joint->rotate('y', delta.x*10);
-
+            neck_joint->rotate('x', -delta.y*20);
+            neck_joint->rotate('y', delta.x*20);
+            scene_graph_changed = true;
             updateSceneGraph();
         }
     }
@@ -715,11 +730,21 @@ bool A3::mouseButtonInputEvent (
         }
         if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
             middle_mouse_pressed = false;
+            if (scene_graph_changed){
+                doCommand();
+                scene_graph_changed = false;
+            }
         }
         if (button == GLFW_MOUSE_BUTTON_RIGHT) {
             right_mouse_pressed = false;
+            if (scene_graph_changed){
+                doCommand();
+                scene_graph_changed = false;
+            }
         }
+        
     }
+    
     eventHandled = true;
 	return eventHandled;
 }
@@ -793,7 +818,7 @@ bool A3::keyInputEvent (
             picking_enabled = true;
             eventHandled = true;
         }
-        if( key == GLFW_KEY_R ) {
+        if( key == GLFW_KEY_P ) {
             user_mode = 0;
             picking_enabled = false;
             eventHandled = true;
@@ -809,6 +834,14 @@ bool A3::keyInputEvent (
         if( key == GLFW_KEY_A ) {
             resetOrientation();
             resetPosition();
+            eventHandled = true;
+        }
+        if( key == GLFW_KEY_U ) {
+            doUndo();
+            eventHandled = true;
+        }
+        if( key == GLFW_KEY_R ) {
+            doRedo();
             eventHandled = true;
         }
 	}
@@ -842,6 +875,16 @@ void A3::resetPosition() {
     m_rootNode->translate(-puppet_translation);
     updateSceneGraph();
     puppet_translation = vec3(0,0,0);
+}
+
+void A3::resetJoints() {
+    curr_state_index = 0;
+    if (undo_stack.size() > 1) {
+        undo_stack.erase(undo_stack.begin() + 1, undo_stack.end());
+    }
+    State init_state = undo_stack[curr_state_index];
+    restoreState(m_rootNode.get(), init_state);
+    updateSceneGraph();
 }
 
 void A3::findJointNode(std::string joint_name, SceneNode* root) {
@@ -880,12 +923,6 @@ void A3::rotateSelectedjoints(float angle){
 void A3::selectJoint(){
     
     int id;
-//    if (m_rootNode.get()->parent != nullptr) {
-//        cout << "root er parent ase" << endl;
-//    } else {
-//        cout << "root er parent nai" << endl;
-//    }
-//
     glFlush();
     glFinish();
     
@@ -953,6 +990,85 @@ SceneNode* A3::findNodeWithId(int id) {
 int A3:: colorToId(unsigned char *arr) {
     int id = arr[0] + arr[1] * 256 + arr[2] * 256 * 256;
     return id;
+}
+
+// undo
+
+void A3::doCommand(){
+    if (curr_state_index + 1 != undo_stack.size()) {
+        undo_stack.erase(undo_stack.begin() + curr_state_index + 1,
+                         undo_stack.end());
+        
+    }
+    State curstate = makeState();
+    cout << "state size " << curstate.size() << endl;
+    undo_stack.push_back(curstate);
+    curr_state_index++;
+    cout << "undo stack size: " <<  undo_stack.size() << endl;
+}
+
+void A3::doUndo(){
+    if (curr_state_index == 0) {
+        cout << "cannot undo" << endl;
+        return;
+    }
+    cout << "undoing" << endl;
+    curr_state_index--;
+    State prev_state = undo_stack[curr_state_index];
+    restoreState(m_rootNode.get(), prev_state);
+    updateSceneGraph();
+}
+
+void A3::doRedo(){
+    if (curr_state_index + 1 == undo_stack.size()) {
+        cout << "cannot redo" << endl;
+        return;
+    }
+    
+    cout << "redoing" << endl;
+    curr_state_index++;
+    State next_state = undo_stack[curr_state_index];
+    restoreState(m_rootNode.get(), next_state);
+    updateSceneGraph();
+
+}
+
+void A3::restoreState(SceneNode *root, State &state) {
+    if (root->m_nodeType == NodeType::JointNode) {
+        root->trans = getTransMat(state, root->m_name);
+    }
+    
+    for (SceneNode* child  : root->children) {
+        restoreState(child, state);
+    }
+    
+}
+
+mat4 A3::getTransMat(State &state, std::string name) {
+    for (auto p : state) {
+        if (p.first == name) {
+            return p.second;
+        }
+    }
+    return mat4(1);
+}
+
+State A3::makeState() {
+    State state;
+    storeState(m_rootNode.get(), state);
+    return state;
+}
+
+
+void A3::storeState(SceneNode* root, State& state){
+    if (root->m_nodeType == NodeType::JointNode) {
+//        cout << root->m_name << endl;
+//        state[root->m_name] = root->trans;
+        state.push_back(make_pair(root->m_name, root->trans));
+    }
+    for (SceneNode* child : root->children) {
+        storeState(child, state);
+    }
 }
 
 // trackball

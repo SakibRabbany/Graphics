@@ -11,6 +11,9 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
+#include <utility>
+
+typedef std::vector<std::pair<std::string, glm::mat4>> State;
 
 struct LightSource {
 	glm::vec3 position;
@@ -118,6 +121,7 @@ protected:
     
     void resetPosition();
     void resetOrientation();
+    void resetJoints();
     
     void updateSceneGraph();
     
@@ -144,6 +148,25 @@ protected:
     void selectJoint();
     void populateNodeVector(SceneNode* root);
     int colorToId(unsigned char arr[]);
+    
+    // undo
+    std::vector<State> undo_stack;
+    int curr_state_index;
+    void storeState(SceneNode* root, State& state);
+    void restoreState(SceneNode* root, State& state);
+    glm::mat4 getTransMat(State& state, std::string name);
+    
+    
+
+    State makeState();
+    
+    bool scene_graph_changed;
+    
+    
+    void doCommand();
+    void doUndo();
+    void doRedo();
+    
 
     
     void vCalcRotVec(float fNewX, float fNewY,
