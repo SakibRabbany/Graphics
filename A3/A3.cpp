@@ -677,7 +677,7 @@ bool A3::mouseMoveEvent (
             // picking
         }
         if (middle_mouse_pressed) {
-            rotateSelectedjoints(delta.y*40);
+            rotateSelectedjoints(-delta.y*40);
             scene_graph_changed = true;
             updateSceneGraph();
         }
