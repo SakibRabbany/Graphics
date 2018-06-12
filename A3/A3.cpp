@@ -656,17 +656,14 @@ bool A3::mouseMoveEvent (
             // picking
         }
         if (middle_mouse_pressed) {
-            
-        }
-        if (right_mouse_pressed) {
-            cout << "rotating joints " << endl;
             rotateSelectedjoints(delta.y*10);
             updateSceneGraph();
-            
-//            neck_joint->rotate('x', -delta.y*10);
-//            neck_joint->rotate('y', delta.x*10);
-//
-//            updateSceneGraph();
+        }
+        if (right_mouse_pressed) {
+            neck_joint->rotate('x', -delta.y*10);
+            neck_joint->rotate('y', delta.x*10);
+
+            updateSceneGraph();
         }
     }
     
@@ -811,11 +808,6 @@ bool A3::keyInputEvent (
             eventHandled = true;
         }
         if( key == GLFW_KEY_L ) {
-//            if (picking_enabled == 1) {
-//                picking_enabled = 0;
-//            } else {
-//                picking_enabled = 1;
-//            }
             picking_enabled = !picking_enabled;
             eventHandled = true;
         }
