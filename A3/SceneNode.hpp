@@ -58,6 +58,7 @@ public:
     
     ////
     void updateWorldMatrix(glm::mat4 transformation);
+    virtual glm::vec3 idToRGB() const;
 
 
 private:

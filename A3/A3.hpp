@@ -10,6 +10,7 @@
 
 #include <glm/glm.hpp>
 #include <memory>
+#include <vector>
 
 struct LightSource {
 	glm::vec3 position;
@@ -97,6 +98,8 @@ protected:
     bool left_mouse_pressed;
     bool middle_mouse_pressed;
     bool right_mouse_pressed;
+
+    bool picking_enabled;
     
     glm::vec2 left_initial;
     glm::vec2 middle_initial;
@@ -119,12 +122,15 @@ protected:
     void updateSceneGraph();
     
     void findJointNode(std::string joint_name, SceneNode* root);
+    SceneNode* findNodeWithId (int id);
+    SceneNode* findJoint(SceneNode* node);
     
     float rot_ang;
     
     void drawPuppet(const SceneNode &node);
     void update(SceneNode* root);
     void updateParentPointers(SceneNode* parent, SceneNode* root);
+    void rotateSelectedjoints(float angle);
     
     //// trackball
     
@@ -132,6 +138,12 @@ protected:
     glm::vec2 initial_rotation_click;
     
     glm::mat4 initial_torso_transformation;
+    
+    std::vector<SceneNode*> selected_joints;
+    std::vector<SceneNode*> nodes;
+    void selectJoint();
+    void populateNodeVector(SceneNode* root);
+    int colorToId(unsigned char arr[]);
 
     
     void vCalcRotVec(float fNewX, float fNewY,
