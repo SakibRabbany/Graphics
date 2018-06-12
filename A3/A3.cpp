@@ -410,16 +410,14 @@ void A3::guiLogic()
     ImGui::SameLine();
     ImGui::PushID( 0 );
     if( ImGui::RadioButton( "##   Rotate:", &user_mode, 0 ) ) {
-        // Select this colour.
-        //active_col = colour1;
+        picking_enabled = false;
     }
     ImGui::PopID();
     ImGui::Text("Joints                 (J):");
     ImGui::SameLine();
     ImGui::PushID( 1 );
     if( ImGui::RadioButton( "##   Translate:", &user_mode, 1 ) ) {
-        // Select this colour.
-        //active_col = colour2;
+        picking_enabled = true;
     }
     ImGui::PopID();
 
@@ -788,10 +786,12 @@ bool A3::keyInputEvent (
         }
         if( key == GLFW_KEY_J ) {
             user_mode = 1;
+            picking_enabled = true;
             eventHandled = true;
         }
         if( key == GLFW_KEY_R ) {
             user_mode = 0;
+            picking_enabled = false;
             eventHandled = true;
         }
         if( key == GLFW_KEY_I ) {
@@ -805,10 +805,6 @@ bool A3::keyInputEvent (
         if( key == GLFW_KEY_A ) {
             resetOrientation();
             resetPosition();
-            eventHandled = true;
-        }
-        if( key == GLFW_KEY_L ) {
-            picking_enabled = !picking_enabled;
             eventHandled = true;
         }
 	}

@@ -23,9 +23,9 @@ SceneNode::SceneNode(const std::string& name)
 	trans(mat4()),
     world_mat(mat4()),
 	isSelected(false),
-	m_nodeId(nodeInstanceCount++)
+	m_nodeId(nodeInstanceCount)
 {
-
+    nodeInstanceCount += 666;
 }
 
 //---------------------------------------------------------------------------------------
