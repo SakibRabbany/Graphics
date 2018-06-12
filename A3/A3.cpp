@@ -118,6 +118,8 @@ void A3::init()
     
     scene_graph_changed = false;
     
+    highlight_offset = 6666666;
+    
     rot_ang = 0.3;
 
 	// Exiting the current scope calls delete automatically on meshConsolidator freeing
@@ -425,14 +427,12 @@ void A3::guiLogic()
     ImGui::SameLine();
     ImGui::PushID( 0 );
     if( ImGui::RadioButton( "##   Rotate:", &user_mode, 0 ) ) {
-        picking_enabled = false;
     }
     ImGui::PopID();
     ImGui::Text("Joints                 (J):");
     ImGui::SameLine();
     ImGui::PushID( 1 );
     if( ImGui::RadioButton( "##   Translate:", &user_mode, 1 ) ) {
-        picking_enabled = true;
     }
     ImGui::PopID();
 
@@ -478,7 +478,11 @@ static void updateShaderUniforms(
 //            }
             
         } else {
-            kd = node.material.kd;
+            if (node.isSelected) {
+                kd = vec3(1,1,1);
+            } else {
+                kd = node.material.kd;
+            }
         }
 
 		glUniform3fv(location, 1, value_ptr(kd));
@@ -673,6 +677,7 @@ bool A3::mouseMoveEvent (
             // picking
         }
         if (middle_mouse_pressed) {
+            rotateSelectedjoints(delta.y*40);
             scene_graph_changed = true;
             updateSceneGraph();
         }
@@ -815,12 +820,10 @@ bool A3::keyInputEvent (
         }
         if( key == GLFW_KEY_J ) {
             user_mode = 1;
-            picking_enabled = true;
             eventHandled = true;
         }
         if( key == GLFW_KEY_P ) {
             user_mode = 0;
-            picking_enabled = false;
             eventHandled = true;
         }
         if( key == GLFW_KEY_I ) {
@@ -921,29 +924,41 @@ void A3::rotateSelectedjoints(float angle){
 }
 
 void A3::selectJoint(){
+    double xpos, ypos;
+    glfwGetCursorPos( m_window, &xpos, &ypos );
+
+    picking_enabled = true;
     
-    int id;
-    glFlush();
-    glFinish();
     
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    uploadCommonSceneUniforms();
+    glClearColor(1.0, 1.0, 1.0, 1.0 );
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    glClearColor(0.35, 0.35, 0.35, 1.0);
     
-    // Read the pixel at the center of the screen.
-    // You can also use glfwGetMousePos().
-    // Ultra-mega-over slow too, even for 1 pixel,
-    // because the framebuffer is on the GPU.
-    unsigned char data[4];
+    draw();
     
-    double mx, my;
+    CHECK_GL_ERRORS;
     
-    glfwGetCursorPos(m_window, &mx, &my);
+    // Ugly -- FB coordinates might be different than Window coordinates
+    // (e.g., on a retina display).  Must compensate.
+    xpos *= double(m_framebufferWidth) / double(m_windowWidth);
+    // WTF, don't know why I have to measure y relative to the bottom of
+    // the window in this case.
+    ypos = m_windowHeight - ypos;
+    ypos *= double(m_framebufferHeight) / double(m_windowHeight);
     
-    glReadPixels(mx*(m_framebufferWidth/m_windowWidth), m_framebufferHeight - (my*(m_framebufferHeight/m_windowHeight)) ,1,1, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    
-    id = colorToId(data);
-    
+    GLubyte buffer[ 4 ] = { 0, 0, 0, 0 };
+    // A bit ugly -- don't want to swap the just-drawn false colours
+    // to the screen, so read from the back buffer.
+    glReadBuffer( GL_BACK );
+    // Actually read the pixel at the mouse location.
+    glReadPixels( int(xpos), int(ypos), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, buffer );
+    CHECK_GL_ERRORS;
+
+    int id = colorToId(buffer);
+
     SceneNode* node = findNodeWithId(id);
-    
+
     if (node){
         cout << node->m_name << endl;
         SceneNode* jnode = findJoint(node);
@@ -959,13 +974,19 @@ void A3::selectJoint(){
         cout << "nothing picked" << endl;
     }
     
+    picking_enabled = false;
+    
 }
 
 SceneNode* A3::findJoint(SceneNode *node) {
     SceneNode* p;
-    p = node;
-    while (p != nullptr and p->m_nodeType != NodeType::JointNode) {
-        p = p->parent;
+//    while (p != nullptr and p->m_nodeType != NodeType::JointNode) {
+//        p = p->parent;
+//    }
+    if (node->parent != nullptr and node->parent->m_nodeType == NodeType::JointNode){
+        p = node->parent;
+    } else {
+        p = nullptr;
     }
     return p;
 }
@@ -979,15 +1000,21 @@ void A3::populateNodeVector(SceneNode *root){
 
 SceneNode* A3::findNodeWithId(int id) {
     for (SceneNode* node : nodes) {
+//        if (node->isSelected) {
+//            if (node->m_nodeId == id - highlight_offset) {
+//                return node;
+//            }
+//        } else {
+            if (node->m_nodeId == id) {
+                return node;
+            }
+//        }
         
-        if (node->m_nodeId == id) {
-            return node;
-        }
     }
     return nullptr;
 }
 
-int A3:: colorToId(unsigned char *arr) {
+int A3:: colorToId(GLubyte* arr) {
     int id = arr[0] + arr[1] * 256 + arr[2] * 256 * 256;
     return id;
 }

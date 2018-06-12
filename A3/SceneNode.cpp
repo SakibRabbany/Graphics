@@ -25,7 +25,7 @@ SceneNode::SceneNode(const std::string& name)
 	isSelected(false),
 	m_nodeId(nodeInstanceCount)
 {
-    nodeInstanceCount += 666;
+    nodeInstanceCount += 111;
 }
 
 //---------------------------------------------------------------------------------------
@@ -149,14 +149,18 @@ void SceneNode::rotate(glm::mat4 mat) {
 
 vec3 SceneNode::idToRGB() const {
     
-    vec3 colour;
+    int temp = m_nodeId;
+    
 //    if (isSelected) {
-//        colour = vec3(255.0f, 255.0f, 255.0f);
-//    } else {
-        colour.x = (m_nodeId & 0x000000FF) >>  0;
-        colour.y = (m_nodeId & 0x0000FF00) >>  8;
-        colour.z = (m_nodeId & 0x00FF0000) >> 16;
+//        temp += 6666666;
 //    }
+    
+    vec3 colour;
+
+    colour.x = (temp & 0x000000FF) >>  0;
+    colour.y = (temp & 0x0000FF00) >>  8;
+    colour.z = (temp & 0x00FF0000) >> 16;
+
     
     
     return colour/255.0f;

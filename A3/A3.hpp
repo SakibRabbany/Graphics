@@ -147,7 +147,9 @@ protected:
     std::vector<SceneNode*> nodes;
     void selectJoint();
     void populateNodeVector(SceneNode* root);
-    int colorToId(unsigned char arr[]);
+    int colorToId(GLubyte* arr);
+    
+    int highlight_offset;
     
     // undo
     std::vector<State> undo_stack;
@@ -155,6 +157,8 @@ protected:
     void storeState(SceneNode* root, State& state);
     void restoreState(SceneNode* root, State& state);
     glm::mat4 getTransMat(State& state, std::string name);
+    
+    
     
     
 
