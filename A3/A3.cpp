@@ -456,10 +456,14 @@ static void updateShaderUniforms(
         
         vec3 kd;
         if (picking_enabled) {
-            kd = node.idToRGB();
+//            if (node.isSelected) {
+//                kd = vec3(1.0f,1.0f,1.0f);
+//            } else {
+                kd = node.idToRGB();
+//            }
+            
         } else {
             kd = node.material.kd;
-
         }
 
 		glUniform3fv(location, 1, value_ptr(kd));
@@ -867,7 +871,7 @@ void A3::updateParentPointers(SceneNode* parent, SceneNode* root){
 
 void A3::rotateSelectedjoints(float angle){
     for (SceneNode* node : nodes) {
-        if (node->isSelected){
+        if (node->isSelected and node->m_nodeType == NodeType::JointNode){
             node->rotate('x', angle);
         }
     }
@@ -908,6 +912,7 @@ void A3::selectJoint(){
         SceneNode* jnode = findJoint(node);
         if (jnode) {
             jnode->isSelected = !jnode->isSelected;
+            node->isSelected = !node->isSelected;
             cout << jnode->m_name << endl;
         }
         else {

@@ -148,10 +148,16 @@ void SceneNode::rotate(glm::mat4 mat) {
 }
 
 vec3 SceneNode::idToRGB() const {
+    
     vec3 colour;
-    colour.x = (m_nodeId & 0x000000FF) >>  0;
-    colour.y = (m_nodeId & 0x0000FF00) >>  8;
-    colour.z = (m_nodeId & 0x00FF0000) >> 16;
+//    if (isSelected) {
+//        colour = vec3(255.0f, 255.0f, 255.0f);
+//    } else {
+        colour.x = (m_nodeId & 0x000000FF) >>  0;
+        colour.y = (m_nodeId & 0x0000FF00) >>  8;
+        colour.z = (m_nodeId & 0x00FF0000) >> 16;
+//    }
+    
     
     return colour/255.0f;
 }
