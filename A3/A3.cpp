@@ -656,17 +656,17 @@ bool A3::mouseMoveEvent (
             // picking
         }
         if (middle_mouse_pressed) {
-            rotateSelectedjoints(delta.y*10);
-            updateSceneGraph();
+            
         }
         if (right_mouse_pressed) {
             cout << "rotating joints " << endl;
-            
-            
-            neck_joint->rotate('x', -delta.y*10);
-            neck_joint->rotate('y', delta.x*10);
-
+            rotateSelectedjoints(delta.y*10);
             updateSceneGraph();
+            
+//            neck_joint->rotate('x', -delta.y*10);
+//            neck_joint->rotate('y', delta.x*10);
+//
+//            updateSceneGraph();
         }
     }
     
@@ -894,7 +894,6 @@ void A3::selectJoint(){
 //        cout << "root er parent nai" << endl;
 //    }
 //
-    cout << torso->parent->m_name << endl;
     glFlush();
     glFinish();
     
