@@ -648,9 +648,11 @@ bool A3::mouseMoveEvent (
             // picking
         }
         if (middle_mouse_pressed) {
-            rotateSelectedjoints(-delta.x*40,-delta.y*40);
-            scene_graph_changed = true;
-            updateSceneGraph();
+            if (num_selected_joint > 0) {
+                rotateSelectedjoints(-delta.x*40,-delta.y*40);
+                scene_graph_changed = true;
+                updateSceneGraph();
+            }
         }
         if (right_mouse_pressed) {
             if (head->isSelected) {
