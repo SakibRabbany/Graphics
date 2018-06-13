@@ -129,6 +129,7 @@ protected:
     void findJointNode(std::string joint_name, SceneNode* root);
     SceneNode* findNodeWithId (int id);
     SceneNode* findJoint(SceneNode* node);
+    int num_selected_joint;
     
     float rot_ang;
     

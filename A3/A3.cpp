@@ -118,6 +118,8 @@ void A3::init()
     
     scene_graph_changed = false;
     
+    num_selected_joint = 0;
+    
 	// Exiting the current scope calls delete automatically on meshConsolidator freeing
 	// all vertex data resources.  This is fine since we already copied this data to
 	// VBOs on the GPU.  We have no use for storing vertex data on the CPU side beyond
@@ -943,9 +945,9 @@ void A3::selectJoint(){
         cout << node->m_name << endl;
         SceneNode* jnode = findJoint(node);
         if (jnode) {
+            node->isSelected ? num_selected_joint-- : num_selected_joint++;
             jnode->isSelected = !jnode->isSelected;
             node->isSelected = !node->isSelected;
-            cout << jnode->m_name << endl;
         }
         else {
             cout << "nothing picked" << endl;
