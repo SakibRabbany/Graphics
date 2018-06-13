@@ -901,6 +901,7 @@ void A3::updateParentPointers(SceneNode* parent, SceneNode* root){
 void A3::rotateSelectedjoints(float x_angle, float y_angle){
     for (SceneNode* node : nodes) {
         if (node->isSelected and node->m_nodeType == NodeType::JointNode){
+            if (node->m_name == "neck_joint") continue;
             node->rotate('x', x_angle);
             node->rotate('y', y_angle);
         }
