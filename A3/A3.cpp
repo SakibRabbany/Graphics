@@ -118,10 +118,6 @@ void A3::init()
     
     scene_graph_changed = false;
     
-    highlight_offset = 6666666;
-    
-    rot_ang = 0.3;
-
 	// Exiting the current scope calls delete automatically on meshConsolidator freeing
 	// all vertex data resources.  This is fine since we already copied this data to
 	// VBOs on the GPU.  We have no use for storing vertex data on the CPU side beyond
@@ -471,12 +467,7 @@ static void updateShaderUniforms(
         
         vec3 kd;
         if (picking_enabled) {
-//            if (node.isSelected) {
-//                kd = vec3(1.0f,1.0f,1.0f);
-//            } else {
-                kd = node.idToRGB();
-//            }
-            
+            kd = node.idToRGB();
         } else {
             if (node.isSelected) {
                 kd = vec3(1,1,1);
@@ -512,12 +503,7 @@ void A3::draw() {
         glEnable( GL_DEPTH_TEST );
     
     performFaceCulling();
-
-    
-//    update(m_rootNode.get());
-
 	renderSceneGraph(*m_rootNode);
-
     finishFaceCulling();
 
     if (z_buffer)
@@ -545,33 +531,16 @@ void A3::renderSceneGraph(const SceneNode & root) {
 	// subclasses, that renders the subtree rooted at every node.  Or you
 	// could put a set of mutually recursive functions in this class, which
 	// walk down the tree from nodes of different types.
-//    update(m_rootNode.get());
-    m_rootNode->updateWorldMatrix(mat4(1));
+
     drawPuppet(*m_rootNode);
     
 	glBindVertexArray(0);
 	CHECK_GL_ERRORS;
 }
 
-void A3::update(SceneNode* root){
-    if (root->m_name == "root") {
-        root->rotate('y', rot_ang);
-    }
-//    if (root->m_name == "left_shoulder") {
-//        root->rotate('x', rot_ang);
-//        return;
-//    }
-    for (SceneNode* child: root->children) {
-        update(child);
-    }
-}
-
 
 void A3::drawPuppet(const SceneNode& root) {
-//    if(root.m_nodeType == NodeType::JointNode) {
-//        cout << root.m_name << endl;
-//        cout << root.trans << endl;
-//    }
+
     
     for (const SceneNode * node : root.children) {
 
@@ -677,15 +646,17 @@ bool A3::mouseMoveEvent (
             // picking
         }
         if (middle_mouse_pressed) {
-            rotateSelectedjoints(-delta.y*40);
+            rotateSelectedjoints(-delta.x*40,-delta.y*40);
             scene_graph_changed = true;
             updateSceneGraph();
         }
         if (right_mouse_pressed) {
-            neck_joint->rotate('x', -delta.y*20);
-            neck_joint->rotate('y', delta.x*20);
-            scene_graph_changed = true;
-            updateSceneGraph();
+            if (head->isSelected) {
+                neck_joint->rotate('x', -delta.y*20);
+                neck_joint->rotate('y', delta.x*20);
+                scene_graph_changed = true;
+                updateSceneGraph();
+            }
         }
     }
     
@@ -902,6 +873,9 @@ void A3::findJointNode(std::string joint_name, SceneNode* root) {
     if (root->m_name == "torso") {
         torso = root;
     }
+    if (root->m_name == "head") {
+        head = root;
+    }
     for (SceneNode* child : root->children) {
         findJointNode(joint_name, child);
     }
@@ -920,10 +894,11 @@ void A3::updateParentPointers(SceneNode* parent, SceneNode* root){
     }
 }
 
-void A3::rotateSelectedjoints(float angle){
+void A3::rotateSelectedjoints(float x_angle, float y_angle){
     for (SceneNode* node : nodes) {
         if (node->isSelected and node->m_nodeType == NodeType::JointNode){
-            node->rotate('x', angle);
+            node->rotate('x', x_angle);
+            node->rotate('y', y_angle);
         }
     }
 }
@@ -985,9 +960,6 @@ void A3::selectJoint(){
 
 SceneNode* A3::findJoint(SceneNode *node) {
     SceneNode* p;
-//    while (p != nullptr and p->m_nodeType != NodeType::JointNode) {
-//        p = p->parent;
-//    }
     if (node->parent != nullptr and node->parent->m_nodeType == NodeType::JointNode){
         p = node->parent;
     } else {
@@ -1005,16 +977,9 @@ void A3::populateNodeVector(SceneNode *root){
 
 SceneNode* A3::findNodeWithId(int id) {
     for (SceneNode* node : nodes) {
-//        if (node->isSelected) {
-//            if (node->m_nodeId == id - highlight_offset) {
-//                return node;
-//            }
-//        } else {
-            if (node->m_nodeId == id) {
-                return node;
-            }
-//        }
-        
+        if (node->m_nodeId == id) {
+            return node;
+        }
     }
     return nullptr;
 }
@@ -1094,8 +1059,6 @@ State A3::makeState() {
 
 void A3::storeState(SceneNode* root, State& state){
     if (root->m_nodeType == NodeType::JointNode) {
-//        cout << root->m_name << endl;
-//        state[root->m_name] = root->trans;
         state.push_back(make_pair(root->m_name, root->trans));
     }
     for (SceneNode* child : root->children) {

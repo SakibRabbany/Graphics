@@ -118,6 +118,7 @@ protected:
     
     JointNode* neck_joint;
     SceneNode* torso;
+    SceneNode* head;
     
     void resetPosition();
     void resetOrientation();
@@ -132,9 +133,8 @@ protected:
     float rot_ang;
     
     void drawPuppet(const SceneNode &node);
-    void update(SceneNode* root);
     void updateParentPointers(SceneNode* parent, SceneNode* root);
-    void rotateSelectedjoints(float angle);
+    void rotateSelectedjoints(float x_angle, float y_angle);
     
     //// trackball
     

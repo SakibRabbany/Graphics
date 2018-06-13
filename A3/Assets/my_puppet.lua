@@ -93,30 +93,30 @@ hips = gr.mesh('cube', 'hips')
 -- parent:shoulder
 right_upper_arm = gr.mesh('cube', 'right_upper_arm')
     right_upper_arm:set_material(red)
-    right_upper_arm:scale(upper_arm_width/0.25, upper_arm_height, (upper_arm_width+0.17)/0.4 )
-    right_upper_arm:translate(0, -(shoulder_height/2 + upper_arm_height/2)+0.4, 0)
+    right_upper_arm:scale(upper_arm_width/0.2, upper_arm_height/0.8, (upper_arm_width+0.17)/0.35 )
+    right_upper_arm:translate(0, -(shoulder_height/2 + upper_arm_height/2)+0.2, 0)
 
 
 -- left upper arm definition
 -- parent:shoulder
 left_upper_arm = gr.mesh('cube', 'left_upper_arm')
     left_upper_arm:set_material(red)
-    left_upper_arm:scale(upper_arm_width/0.25, upper_arm_height, (upper_arm_width+0.17)/0.4)
-    left_upper_arm:translate(0, -(shoulder_height/2 + upper_arm_height/2)+0.4, 0)
+    left_upper_arm:scale(upper_arm_width/0.2, upper_arm_height/0.8, (upper_arm_width+0.17)/0.35)
+    left_upper_arm:translate(0, -(shoulder_height/2 + upper_arm_height/2)+0.2, 0)
 
 
 -- left lower arm definition
 -- parent: left upper arm
 left_fore_arm = gr.mesh('cube', 'left_fore_arm')
     left_fore_arm:set_material(blue)
-    left_fore_arm:scale(fore_arm_width/0.75, fore_arm_height/0.2, fore_arm_width/0.75)
+    left_fore_arm:scale(fore_arm_width/0.7, fore_arm_height/0.18, fore_arm_width/0.7)
     left_fore_arm:translate(0,-(upper_arm_height/5+1.5),0)
 
 -- right lower arm definition
 -- parent: right upper arm
 right_fore_arm = gr.mesh('cube', 'right_fore_arm')
     right_fore_arm:set_material(blue)
-    right_fore_arm:scale(fore_arm_width/0.75, fore_arm_height/0.2, fore_arm_width/0.75)
+    right_fore_arm:scale(fore_arm_width/0.7, fore_arm_height/0.18, fore_arm_width/0.7)
     right_fore_arm:translate(0,-(upper_arm_height/5+1.5),0)
 
 -- right hand definition
@@ -223,9 +223,8 @@ ears = gr.mesh('cube', 'ears')
 left_shoulder = gr.mesh('sphere', 'left_shoulder')
 shoulders:add_child(left_shoulder)
 left_shoulder:set_material(green)
-left_shoulder:scale(0.25, 1, 0.4)
-
-left_shoulder:translate(shoulder_width/2-0.1, 0, 0)
+left_shoulder:scale(0.2, 0.8, 0.35)
+left_shoulder:translate(shoulder_width/2-0.1, -0.1, 0)
 
 left_shoulder_joint = gr.joint('left_shoulder_joint', shoulder_joint_x, shoulder_joint_y)
 left_shoulder:add_child(left_shoulder_joint)
@@ -235,8 +234,8 @@ left_shoulder_joint:add_child(left_upper_arm)
 right_shoulder = gr.mesh('sphere', 'right_shoulder')
 shoulders:add_child(right_shoulder)
 right_shoulder:set_material(green)
-right_shoulder:scale(0.25, 1, 0.4)
-right_shoulder:translate(-(shoulder_width/2-0.1), 0, 0)
+right_shoulder:scale(0.2, 0.8, 0.35)
+right_shoulder:translate(-(shoulder_width/2-0.1), -0.1, 0)
 
 right_shoulder_joint = gr.joint('right_shoulder_joint', shoulder_joint_x, shoulder_joint_y)
 right_shoulder:add_child(right_shoulder_joint)
@@ -246,7 +245,7 @@ right_shoulder_joint:add_child(right_upper_arm)
 left_elbow = gr.mesh('sphere', 'left_elbow')
 left_upper_arm:add_child(left_elbow)
 left_elbow:set_material(green)
-left_elbow:scale(0.75, 0.2, 0.75)
+left_elbow:scale(0.7, 0.18, 0.7)
 left_elbow:translate(0, -0.47, 0)
 
 left_elbow_joint = gr.joint('left_elbow_joint', elbow_joint_x, elbow_joint_y)
@@ -258,7 +257,7 @@ left_elbow_joint:add_child(left_fore_arm)
 right_elbow = gr.mesh('sphere', 'right_elbow')
 right_upper_arm:add_child(right_elbow)
 right_elbow:set_material(green)
-right_elbow:scale(0.75, 0.2, 0.75)
+right_elbow:scale(0.7, 0.18, 0.7)
 right_elbow:translate(0, -0.47, 0)
 
 right_elbow_joint = gr.joint('right_elbow_joint', elbow_joint_x, elbow_joint_y)
@@ -371,6 +370,9 @@ neck_mesh:translate(0, 0.5, 0)
 neck_joint = gr.joint('neck_joint', neck_joint_x, neck_joint_y)
 neck_mesh:add_child(neck_joint)
 neck_joint:add_child(head)
+
+-- shoulders joint
+--shoulders_mesh = gr
 
 
 return rootnode
