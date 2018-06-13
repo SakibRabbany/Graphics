@@ -903,7 +903,8 @@ void A3::rotateSelectedjoints(float x_angle, float y_angle){
         if (node->isSelected and node->m_nodeType == NodeType::JointNode){
             if (node->m_name == "neck_joint") continue;
             node->rotate('x', x_angle);
-            node->rotate('y', y_angle);
+            if (node->m_name == "neck_base_joint")
+                node->rotate('y', y_angle);
         }
     }
 }
