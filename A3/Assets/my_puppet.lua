@@ -25,7 +25,10 @@ ankle_joint_x = {-10, 0, 10}
 ankle_joint_y = {-15, 0, 15}
 
 neck_joint_x = {-30, 0, 20}
-neck_joint_y = {-90, 0, 90}
+neck_joint_y = {-70, 0, 70}
+
+neck_base_joint_x = {-10, 0, 5}
+neck_base_joint_y = {-10, 0, 10}
 
 
 
@@ -180,10 +183,9 @@ left_foot = gr.mesh('cube', 'left_foot')
 
 -- neck definition
 neck = gr.mesh('cube', 'neck')
-    shoulders:add_child(neck)
     neck:set_material(blue)
-    neck:scale(0.2, 1.1, 0.5)
-    neck:translate(0, 1.1, 0)
+    neck:scale(0.2/0.7, 1.1/0.5, 0.5/0.5)
+    neck:translate(0, 1.9, 0)
 
 -- head definition
 head = gr.mesh('cube', 'head')
@@ -373,6 +375,18 @@ neck_joint:add_child(head)
 
 -- shoulders joint
 --shoulders_mesh = gr
+
+-- neck_base
+
+neck_base_mesh = gr.mesh('sphere', 'neck_base_mesh')
+shoulders:add_child(neck_base_mesh)
+neck_base_mesh:set_material(green)
+neck_base_mesh:scale(0.7, 0.5, 0.5)
+
+
+neck_base_joint = gr.joint('neck_base_joint', neck_base_joint_x, neck_base_joint_y)
+neck_base_mesh:add_child(neck_base_joint)
+neck_base_joint:add_child(neck)
 
 
 return rootnode
