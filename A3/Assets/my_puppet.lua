@@ -184,7 +184,7 @@ left_foot = gr.mesh('cube', 'left_foot')
 -- neck definition
 neck = gr.mesh('cube', 'neck')
     neck:set_material(blue)
-    neck:scale(0.2/0.7, 1.1/0.5, 0.5/0.5)
+    neck:scale(0.2/0.13, 1.1/0.5, 0.5/0.2)
     neck:translate(0, 1.9, 0)
 
 -- head definition
@@ -381,7 +381,7 @@ neck_joint:add_child(head)
 neck_base_mesh = gr.mesh('sphere', 'neck_base_mesh')
 shoulders:add_child(neck_base_mesh)
 neck_base_mesh:set_material(green)
-neck_base_mesh:scale(0.7, 0.5, 0.5)
+neck_base_mesh:scale(0.13, 0.5, 0.2)
 
 
 neck_base_joint = gr.joint('neck_base_joint', neck_base_joint_x, neck_base_joint_y)
