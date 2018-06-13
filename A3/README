@@ -1,0 +1,46 @@
+Compilation
+Preconditions:
+premake4 and cmake has to be installed.
+“lib” and “shared” folders have to be in the same directory as A3 folder
+
+Navigate to the A3 directory.
+
+To Compile run the following commands:
+premake4 gmake
+make
+
+To run the program run the following command:
+./A3 Assets/puppet.lua
+
+Tested the assignment on gl17.student.cs in the graphics lab.
+
+Manual
+Everything is implemented according to the assignment specifications.
+
+Additional Notes:
+Sometimes the program renders the puppets arms and legs with weird angles and all
+distorted (i have no idea why). If that happens, close the program and run again.
+This happens on most of the lab machines except for gl17 where the occurrence is low.
+
+
+Puppet Model:
+
+The puppet model is a hierarchical scene graph.
+
+The root of the graph points to torso which is essentially the root of the whole puppet.
+The puppet consists of the basic anatomical features of a human.
+Each selectable geometry has a joint node as its immediate parent.
+The joint node’s immediate parent is a sphere mesh representing the joint.
+
+The selectable geometries are:
+Left/Right
+	upper arm
+	fore arm
+	hand
+	thigh
+	calf
+	foot
+neck
+head
+
+

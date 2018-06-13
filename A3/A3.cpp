@@ -116,6 +116,7 @@ void A3::init()
     
     curr_state_index = 0;
     
+    
     scene_graph_changed = false;
     
     num_selected_joint = 0;
@@ -649,14 +650,14 @@ bool A3::mouseMoveEvent (
         }
         if (middle_mouse_pressed) {
             if (num_selected_joint > 0) {
-                rotateSelectedjoints(-delta.x*40,-delta.y*40);
+                rotateSelectedjoints(-delta.y*40,-delta.x*40);
                 scene_graph_changed = true;
                 updateSceneGraph();
             }
         }
         if (right_mouse_pressed) {
             if (head->isSelected) {
-                neck_joint->rotate('x', -delta.y*20);
+//                neck_joint->rotate('x', -delta.y*20);
                 neck_joint->rotate('y', delta.x*20);
                 scene_graph_changed = true;
                 updateSceneGraph();
@@ -901,7 +902,7 @@ void A3::updateParentPointers(SceneNode* parent, SceneNode* root){
 void A3::rotateSelectedjoints(float x_angle, float y_angle){
     for (SceneNode* node : nodes) {
         if (node->isSelected and node->m_nodeType == NodeType::JointNode){
-            if (node->m_name == "neck_joint") continue;
+//            if (node->m_name == "neck_joint") continue;
             node->rotate('x', x_angle);
             if (node->m_name == "neck_base_joint")
                 node->rotate('y', y_angle);

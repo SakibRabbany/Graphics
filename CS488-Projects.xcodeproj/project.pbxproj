@@ -448,6 +448,7 @@
 		0CFA619F1BA8C8E50041C6E5 /* Main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Main.cpp; sourceTree = "<group>"; };
 		0CFA61A01BA8C8E50041C6E5 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		0CFA61A11BA8C8E50041C6E5 /* premake4.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = premake4.lua; sourceTree = "<group>"; };
+		3DA69DAA20CB301B005A2D30 /* my_puppet.lua */ = {isa = PBXFileReference; lastKnownFileType = text; path = my_puppet.lua; sourceTree = "<group>"; };
 		EF66900674193A7C9A818BE1 /* lcorolib.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lcorolib.c; sourceTree = "<group>"; };
 		EF669008CE107BFB53DEAD20 /* lopcodes.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = lopcodes.o; sourceTree = "<group>"; };
 		EF66902FFAF6C0331E4A906B /* ldo.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = ldo.o; sourceTree = "<group>"; };
@@ -867,6 +868,7 @@
 				EF669EE2DCC67E85927AD1C5 /* a3mark.lua */,
 				EF66986C8C5C612013F63F96 /* puppet.lua */,
 				EF66974A3134D2FDCA34072B /* simpleScene.lua */,
+				3DA69DAA20CB301B005A2D30 /* my_puppet.lua */,
 			);
 			path = Assets;
 			sourceTree = "<group>";
