@@ -10,6 +10,7 @@
 #define MAX_BOUNCE 100
 #define EPSILON 0.01
 #define ANTIALIAS 0
+#define REFLECTION 0
 
 static SceneNode* m_root;
 static int pixel_count = 0;
@@ -85,7 +86,6 @@ void A4_Render(
 //                          || (y >= h/2 && x >= w/2)) ? 1.0 : 0.0;
             
             if (ANTIALIAS) {
-                std::cout << "antialias" << std::endl;
                 world_coord1 = pixelToWorld(glm::vec3(       x,               y,      0), transformation);
                 world_coord2 = pixelToWorld(glm::vec3(x + 1.0f/3.0f,         y,0),       transformation);
                 world_coord3 = pixelToWorld(glm::vec3(x + 2.0f/3.0f,         y,0),       transformation);
@@ -134,8 +134,7 @@ void A4_Render(
                 
                 double prog = (double)pixel_count/(double)(image.width()*image.height());
                 
-                std::cout << "Progress: " << prog << std::endl;
-                std::cout << "Progress: " << pixel_count << std::endl;
+                std::cout << "Progress: " << prog*100 << std::endl;
                 
                 image(x, y, 0) = col_sum.r;
                 image(x, y, 1) = col_sum.g;
@@ -151,8 +150,7 @@ void A4_Render(
                 
                 double prog = (double)pixel_count/(double)(image.width()*image.height());
                 
-                std::cout << "Progress: " << prog << std::endl;
-                std::cout << "Progress: " << pixel_count << std::endl;
+                std::cout << "Progress: " << prog*100 << std::endl;
                 
                 Color rc = rayColor(r, lights, 0);
                 image(x, y, 0) = rc.r;
@@ -177,10 +175,25 @@ Color rayColor(const Ray& r, const std::list<Light *> & lights, int counter) {
     
     if (hit_info.hit) {
         col += hit_info.phong_mat->m_kd * AmbientLight;
-        col += directLight(lights, hit_info, counter);
+        
+        if (hit_info.phong_mat->m_kd != glm::vec3(0)) {
+            col += directLight(lights, hit_info, counter);
+        }
+
+        
+        if (REFLECTION) {
+            if (hit_info.phong_mat->m_ks != glm::vec3(0) and counter < MAX_BOUNCE){
+                counter++;
+                glm::vec4 reflected_direction = hit_info.incident_ray.direction - (2 * glm::dot(hit_info.incident_ray.direction, hit_info.normal) * hit_info.normal);
+                glm::vec4 intersection_point = hit_info.incident_ray.origin + (hit_info.t * hit_info.incident_ray.direction);
+                
+                Ray reflected_ray = Ray(intersection_point, reflected_direction);
+                
+                col += hit_info.phong_mat->m_ks * rayColor(reflected_ray, lights, counter) * hit_info.phong_mat->m_shininess/100;
+            }
+        }
     } else {
         int number = rand_int(1, 100);
-        std::cout << number << std::endl;
         if (number == 1)
             col = glm::vec3(1,1,1);
         else

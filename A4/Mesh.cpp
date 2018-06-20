@@ -63,7 +63,6 @@ void Mesh::hitTest(const Ray &r, HitInformation &hit_info) {
             hit_info.normal = glm::vec4(glm::normalize(glm::triangleNormal(m_vertices[face.v1], m_vertices[face.v2], m_vertices[face.v3])), 0);
             
             hit_info.hit_point = r.origin + (r.direction * t);
-            std::cout << "hit the mesh" << std::endl;
         }
     }
 }
