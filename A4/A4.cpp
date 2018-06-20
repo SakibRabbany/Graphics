@@ -1,6 +1,17 @@
 #include <glm/ext.hpp>
+#include <limits.h>
 
 #include "A4.hpp"
+#include "Ray.hpp"
+
+
+#define DISTANCE_T0_IMAGE_PLANE 10
+#define MAX_BOUNCE 100
+#define EPSILON 0.01
+
+static SceneNode* m_root;
+static int pixel_count = 0;
+static glm::vec3 AmbientLight;
 
 void A4_Render(
 		// What to render
@@ -37,20 +48,211 @@ void A4_Render(
 	}
 	std::cout << "\t}" << std::endl;
 	std:: cout <<")" << std::endl;
+    
+    /////////
+    m_root = root;
+    AmbientLight = ambient;
+    
+    glm::vec4 origin, direction;
+    glm::vec3 color;
+    origin = glm::vec4(eye, 1);
 
+    glm::mat4 transformation = getPixelToWorldTransform(eye, view, up, fovy, image.width(), image.height());
+    
+    
 	size_t h = image.height();
 	size_t w = image.width();
 
 	for (uint y = 0; y < h; ++y) {
 		for (uint x = 0; x < w; ++x) {
-			// Red: increasing from top to bottom
-			image(x, y, 0) = (double)y / h;
-			// Green: increasing from left to right
-			image(x, y, 1) = (double)x / w;
-			// Blue: in lower-left and upper-right corners
-			image(x, y, 2) = ((y < h/2 && x < w/2)
-						  || (y >= h/2 && x >= w/2)) ? 1.0 : 0.0;
+//            // Red: increasing from top to bottom
+//            image(x, y, 0) = (double)y / h;
+//            // Green: increasing from left to right
+//            image(x, y, 1) = (double)x / w;
+//            // Blue: in lower-left and upper-right corners
+//            image(x, y, 2) = ((y < h/2 && x < w/2)
+//                          || (y >= h/2 && x >= w/2)) ? 1.0 : 0.0;
+            
+            glm::vec4 world_coord = pixelToWorld(x, y, transformation);
+            direction = (world_coord - origin);
+            
+//            std::cout << "ray ori: " << std::endl;
+//            std::cout << glm::to_string(origin) << std::endl;
+//            std::cout << "ray dir: " << std::endl;
+//            std::cout << glm::to_string(direction) << std::endl;
+
+            
+            Ray r = Ray(origin, direction);
+            color = glm::vec3(0);
+            
+            double prog = (double)pixel_count/(double)(image.width()*image.height());
+            
+            std::cout << "Progress: " << prog << std::endl;
+            std::cout << "Progress: " << pixel_count << std::endl;
+
+            pixel_count++;
+            Color rc = rayColor(r, lights, 0);
+            image(x, y, 0) = rc.r;
+            image(x, y, 1) = rc.g;
+            image(x, y, 2) = rc.b;
+            
 		}
 	}
 
 }
+
+
+Color rayColor(const Ray& r, const std::list<Light *> & lights, int counter) {
+    Color kd, ks , ke, col;
+    col = glm::vec3(0);
+    
+    if (counter > MAX_BOUNCE) return col;
+    
+    HitInformation hit_info = HitInformation(r);
+    
+    hit(r, m_root, hit_info);
+    
+    if (hit_info.hit) {
+        col += hit_info.phong_mat->m_kd * AmbientLight;
+        col += directLight(lights, hit_info, counter);
+    } else {
+        col = glm::vec3(0,0,0);
+
+    }
+    
+    return col;
+    
+}
+
+
+Color directLight(const std::list<Light *>& lights, HitInformation& hit_info, int counter) {
+    Color col = glm::vec3(0);
+    
+    if (counter > MAX_BOUNCE) {
+        return col;
+    }
+    
+    glm::vec4       intersection_point,
+                    light_position,
+                    shadow_ray_origin,
+                    shadow_ray_direction,
+                    intersection_normal,
+                    reflected_ray_direction,
+                    view_direction;
+    
+    double distance_to_light, distance_to_hit;
+    
+    intersection_point = hit_info.incident_ray.pointAtParameterT(hit_info.t);
+//    intersection_point = hit_info.hit_point;
+    intersection_normal = glm::normalize(hit_info.normal);
+    glm::vec3 kd, ks;
+    
+    kd = hit_info.phong_mat->m_kd;
+    ks = hit_info.phong_mat->m_ks;
+    
+    
+    for (const Light* light : lights) {
+        light_position = glm::vec4(light->position, 1);
+        
+        shadow_ray_direction = glm::normalize(light_position - intersection_point);
+        shadow_ray_origin = intersection_point + (shadow_ray_direction *EPSILON);
+        
+//        std::cout << "initial shadow ray: " << glm::to_string(shadow_ray_origin) << " " << glm::to_string(shadow_ray_direction) << std::endl;
+
+        
+        Ray shadow_ray = Ray(shadow_ray_origin, shadow_ray_direction);
+        
+        distance_to_light = glm::length(light_position - shadow_ray_origin);
+        
+        HitInformation shadow_ray_info = HitInformation(shadow_ray);
+        hit(shadow_ray, m_root, shadow_ray_info);
+        
+//        std::cout << "final shadow ray: " << glm::to_string(shadow_ray_origin) << " " << glm::to_string(shadow_ray_direction) << std::endl;
+
+        
+        if (shadow_ray_info.hit) {
+            distance_to_hit = glm::length((shadow_ray.pointAtParameterT(shadow_ray_info.t) - shadow_ray_origin));
+            if (distance_to_hit < distance_to_light) continue;
+        }
+        
+        
+        auto l_dot_n = glm::dot(shadow_ray_direction, intersection_normal) < 0 ? 0.0 : glm::dot(shadow_ray_direction, intersection_normal);
+//        auto l_dot_n = glm::dot(shadow_ray_direction, intersection_normal);
+
+        if (kd != glm::vec3(0)){
+            col += kd * l_dot_n * light->colour;
+        }
+       
+        if(ks != glm::vec3(0)) {
+            reflected_ray_direction = glm::normalize((2 * l_dot_n * intersection_normal) - shadow_ray_direction);
+            view_direction = glm::normalize(-hit_info.incident_ray.direction);
+            auto r_dot_v = glm::dot(reflected_ray_direction, view_direction);
+            col += ks * pow(r_dot_v, hit_info.phong_mat->m_shininess) * light->colour;
+        }
+        
+    }
+    
+    return col;
+}
+
+
+glm::mat4 getPixelToWorldTransform(const glm::vec3 & eye,
+                                   const glm::vec3 & view,
+                                   const glm::vec3 & up,
+                                   double fovy,
+                                   double image_width,
+                                   double image_height) {
+    //double distance = 5;
+    double plane_width, plane_height;
+    plane_height = 2 * DISTANCE_T0_IMAGE_PLANE * glm::tan(glm::radians(fovy/2));
+    plane_width = (image_width/image_height) * plane_height;
+    
+    glm::mat4 t1, s2, r3, t4;
+    
+    t1 = T1(image_width, image_height, DISTANCE_T0_IMAGE_PLANE);
+    s2 = S2(image_width, image_height, plane_width, plane_height);
+    r3 = R3(eye, view, up);
+    t4 = T4(eye);
+    
+    return t4 * r3 * s2 * t1;
+}
+
+
+glm::vec4 pixelToWorld(double px, double py, glm::mat4& transformation){
+    return transformation * glm::vec4(px, py, 0, 1);
+}
+
+
+glm::mat4 T1(double image_width, double image_height, double distance) {
+    return glm::translate(glm::mat4(1), glm::vec3(-(image_width/2), -(image_height/2), distance));
+}
+
+glm::mat4 S2(double image_width, double image_height, double plane_width, double plane_height) {
+    return glm::scale(glm::mat4(1), glm::vec3(-(plane_width/image_width), plane_height/image_height, 1));
+}
+
+glm::mat4 R3(const glm::vec3 & eye, const glm::vec3 & view, const glm::vec3 & up){
+    
+    glm::vec3 w = glm::normalize(glm::vec3(view - eye));
+    glm::vec3 u = -glm::normalize(glm::cross(w, up));
+    glm::vec3 v = glm::cross(u, w);
+    
+    glm::vec4 col0 = glm::vec4(u.x, u.y, u.z, 0);
+    glm::vec4 col1 = glm::vec4(v.x, v.y, v.z, 0);
+    glm::vec4 col2 = glm::vec4(w.x, w.y, w.z, 0);
+    glm::vec4 col3 = glm::vec4(  0,   0,   0, 1);
+
+    return glm::mat4(col0, col1, col2, col3);
+}
+
+glm::mat4 T4(const glm::vec3 & eye) {
+    return glm::translate(glm::mat4(1), eye);
+}
+
+void hit (const Ray& r, SceneNode* root, HitInformation& hit_info) {
+    root->hitTest(r, hit_info);
+}
+
+
+
+

@@ -134,3 +134,20 @@ std::ostream & operator << (std::ostream & os, const SceneNode & node) {
 	os << "]\n";
 	return os;
 }
+
+void SceneNode::hitTest(const Ray& r, HitInformation& hit_info){
+    glm::vec4 trans_origin, trans_direction;
+    trans_origin = invtrans * r.origin;
+    trans_direction = invtrans * r.direction;
+    Ray transformed_ray(trans_origin, trans_direction);
+    
+    for (SceneNode* child : children) {
+        child->hitTest(transformed_ray, hit_info);
+    }
+    
+    if (hit_info.hit) {
+        hit_info.hit_point = trans * hit_info.hit_point;
+        glm::mat3 inverse = glm::mat3(invtrans);
+        hit_info.normal = glm::vec4((glm::transpose(inverse) * glm::vec3(hit_info.normal)),0);
+    }
+}

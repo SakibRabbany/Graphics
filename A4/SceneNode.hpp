@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Material.hpp"
+#include "HitInformation.hpp"
+#include "Ray.hpp"
 
 #include <glm/glm.hpp>
 
@@ -50,6 +52,9 @@ public:
 	NodeType m_nodeType;
 	std::string m_name;
 	unsigned int m_nodeId;
+    
+    
+    virtual void hitTest(const Ray& r, HitInformation& hit_info);
 
 private:
 	// The number of SceneNode instances.

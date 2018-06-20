@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 
 #include "Primitive.hpp"
+#include "HitInformation.hpp"
 
 struct Triangle
 {
@@ -24,8 +25,8 @@ struct Triangle
 // A polygonal mesh.
 class Mesh : public Primitive {
 public:
-  Mesh( const std::string& fname );
-  
+    Mesh( const std::string& fname );
+    virtual void hitTest(const Ray& r, HitInformation& hit_info);
 private:
 	std::vector<glm::vec3> m_vertices;
 	std::vector<Triangle> m_faces;
