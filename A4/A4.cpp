@@ -9,8 +9,8 @@
 #define DISTANCE_T0_IMAGE_PLANE 10
 #define MAX_BOUNCE 100
 #define EPSILON 0.01
-#define ANTIALIAS 0
-#define REFLECTION 0
+#define ANTIALIAS 1
+#define REFLECTION 1
 
 static SceneNode* m_root;
 static int pixel_count = 0;
