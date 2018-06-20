@@ -32,7 +32,7 @@ void GeometryNode::hitTest(const Ray &r, HitInformation &hit_info) {
     trans_direction = invtrans * r.direction;
     Ray transformed_ray(trans_origin, trans_direction);
     
-    HitInformation prim_hit_info = HitInformation(hit_info.incident_ray);
+    HitInformation prim_hit_info = HitInformation();
     m_primitive->hitTest(transformed_ray, prim_hit_info);
     
 //    std::cout << "in geometry node: " << m_name << std::endl;

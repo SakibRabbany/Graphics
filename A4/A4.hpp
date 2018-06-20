@@ -29,7 +29,7 @@ void A4_Render(
 		const std::list<Light *> & lights
 );
 
-glm::vec4 pixelToWorld(double px, double py, glm::mat4& transformation);
+glm::vec4 pixelToWorld(glm::vec3 px_pos, glm::mat4& transformation);
 
 glm::mat4 getPixelToWorldTransform(const glm::vec3 & eye, const glm::vec3 & view, const glm::vec3 & up, double fovy, double image_width, double image_height);
 glm::mat4 T1(double image_width, double image_height, double distance);
@@ -41,5 +41,5 @@ Color rayColor(const Ray& r, const std::list<Light *> & lights, int counter);
 Color directLight(const std::list<Light *>& lights, HitInformation& hit_info, int counter);
 
 void hit (const Ray& r, SceneNode* root, HitInformation& hit_info);
-
+int rand_int(int min, int max);
 

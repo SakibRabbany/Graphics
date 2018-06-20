@@ -3,15 +3,25 @@
 
 #include "A4.hpp"
 #include "Ray.hpp"
+#include <random>
 
 
 #define DISTANCE_T0_IMAGE_PLANE 10
 #define MAX_BOUNCE 100
 #define EPSILON 0.01
+#define ANTIALIAS 0
 
 static SceneNode* m_root;
 static int pixel_count = 0;
 static glm::vec3 AmbientLight;
+
+int rand_int(int min, int max) {
+    std::random_device rd;
+    std:: mt19937 rng(rd());
+    std::uniform_int_distribution<int> uni (min, max);
+    
+    return uni(rng);
+}
 
 void A4_Render(
 		// What to render
@@ -53,12 +63,13 @@ void A4_Render(
     m_root = root;
     AmbientLight = ambient;
     
-    glm::vec4 origin, direction;
-    glm::vec3 color;
+    glm::vec4 origin, direction, direction1, direction2, direction3, direction4, direction5, direction6, direction7, direction8, direction9;
+    glm::vec3 color, color1, color2, color3, color4, color5, color6, color7, color8, color9, col_sum;
     origin = glm::vec4(eye, 1);
 
     glm::mat4 transformation = getPixelToWorldTransform(eye, view, up, fovy, image.width(), image.height());
     
+    glm::vec4 world_coord, world_coord1, world_coord2, world_coord3, world_coord4, world_coord5, world_coord6, world_coord7, world_coord8, world_coord9;
     
 	size_t h = image.height();
 	size_t w = image.width();
@@ -73,29 +84,81 @@ void A4_Render(
 //            image(x, y, 2) = ((y < h/2 && x < w/2)
 //                          || (y >= h/2 && x >= w/2)) ? 1.0 : 0.0;
             
-            glm::vec4 world_coord = pixelToWorld(x, y, transformation);
-            direction = (world_coord - origin);
-            
-//            std::cout << "ray ori: " << std::endl;
-//            std::cout << glm::to_string(origin) << std::endl;
-//            std::cout << "ray dir: " << std::endl;
-//            std::cout << glm::to_string(direction) << std::endl;
+            if (ANTIALIAS) {
+                std::cout << "antialias" << std::endl;
+                world_coord1 = pixelToWorld(glm::vec3(       x,               y,      0), transformation);
+                world_coord2 = pixelToWorld(glm::vec3(x + 1.0f/3.0f,         y,0),       transformation);
+                world_coord3 = pixelToWorld(glm::vec3(x + 2.0f/3.0f,         y,0),       transformation);
+                world_coord4 = pixelToWorld(glm::vec3(        x,       y + 1.0f/3.0f,0), transformation);
+                world_coord5 = pixelToWorld(glm::vec3(x + 1.0f/3.0f, y + 1.0f/3.0f,0), transformation);
+                world_coord6 = pixelToWorld(glm::vec3(x + 2.0f/3.0f, y + 1.0f/3.0f,0), transformation);
+                world_coord7 = pixelToWorld(glm::vec3(        x,       y + 2.0f/3.0f,0), transformation);
+                world_coord8 = pixelToWorld(glm::vec3(x + 1.0f/3.0f, y + 2.0f/3.0f,0), transformation);
+                world_coord9 = pixelToWorld(glm::vec3(x + 2.0f/3.0f, y + 2.0f/3.0f,0), transformation);
 
-            
-            Ray r = Ray(origin, direction);
-            color = glm::vec3(0);
-            
-            double prog = (double)pixel_count/(double)(image.width()*image.height());
-            
-            std::cout << "Progress: " << prog << std::endl;
-            std::cout << "Progress: " << pixel_count << std::endl;
+                direction1 = (world_coord1 - origin);
+                direction2 = (world_coord2 - origin);
+                direction3 = (world_coord3 - origin);
+                direction4 = (world_coord4 - origin);
+                direction5 = (world_coord5 - origin);
+                direction6 = (world_coord6 - origin);
+                direction7 = (world_coord7 - origin);
+                direction8 = (world_coord8 - origin);
+                direction9 = (world_coord9 - origin);
 
-            pixel_count++;
-            Color rc = rayColor(r, lights, 0);
-            image(x, y, 0) = rc.r;
-            image(x, y, 1) = rc.g;
-            image(x, y, 2) = rc.b;
-            
+                
+                Ray r1 = Ray(origin, direction1);
+                Ray r2 = Ray(origin, direction2);
+                Ray r3 = Ray(origin, direction3);
+                Ray r4 = Ray(origin, direction4);
+                Ray r5 = Ray(origin, direction5);
+                Ray r6 = Ray(origin, direction6);
+                Ray r7 = Ray(origin, direction7);
+                Ray r8 = Ray(origin, direction8);
+                Ray r9 = Ray(origin, direction9);
+
+                color1 = rayColor(r1, lights, 0);
+                color2 = rayColor(r2, lights, 0);
+                color3 = rayColor(r3, lights, 0);
+                color4 = rayColor(r4, lights, 0);
+                color5 = rayColor(r5, lights, 0);
+                color6 = rayColor(r6, lights, 0);
+                color7 = rayColor(r7, lights, 0);
+                color8 = rayColor(r8, lights, 0);
+                color9 = rayColor(r9, lights, 0);
+                
+                col_sum = color1 + color2 + color3 + color4 + color5 + color6 + color7 + color8 + color9;
+
+                col_sum = col_sum/9;
+                pixel_count++;
+                
+                double prog = (double)pixel_count/(double)(image.width()*image.height());
+                
+                std::cout << "Progress: " << prog << std::endl;
+                std::cout << "Progress: " << pixel_count << std::endl;
+                
+                image(x, y, 0) = col_sum.r;
+                image(x, y, 1) = col_sum.g;
+                image(x, y, 2) = col_sum.b;
+            } else {
+                glm::vec4 world_coord = pixelToWorld(glm::vec3(x, y,0), transformation);
+                direction = (world_coord - origin);
+                
+                Ray r = Ray(origin, direction);
+                color = glm::vec3(0);
+                
+                pixel_count++;
+                
+                double prog = (double)pixel_count/(double)(image.width()*image.height());
+                
+                std::cout << "Progress: " << prog << std::endl;
+                std::cout << "Progress: " << pixel_count << std::endl;
+                
+                Color rc = rayColor(r, lights, 0);
+                image(x, y, 0) = rc.r;
+                image(x, y, 1) = rc.g;
+                image(x, y, 2) = rc.b;
+            }
 		}
 	}
 
@@ -116,8 +179,12 @@ Color rayColor(const Ray& r, const std::list<Light *> & lights, int counter) {
         col += hit_info.phong_mat->m_kd * AmbientLight;
         col += directLight(lights, hit_info, counter);
     } else {
-        col = glm::vec3(0,0,0);
-
+        int number = rand_int(1, 100);
+        std::cout << number << std::endl;
+        if (number == 1)
+            col = glm::vec3(1,1,1);
+        else
+            col = glm::vec3(0,0,0);
     }
     
     return col;
@@ -144,7 +211,7 @@ Color directLight(const std::list<Light *>& lights, HitInformation& hit_info, in
     
     intersection_point = hit_info.incident_ray.pointAtParameterT(hit_info.t);
 //    intersection_point = hit_info.hit_point;
-    intersection_normal = glm::normalize(hit_info.normal);
+    intersection_normal = (hit_info.normal);
     glm::vec3 kd, ks;
     
     kd = hit_info.phong_mat->m_kd;
@@ -175,6 +242,9 @@ Color directLight(const std::list<Light *>& lights, HitInformation& hit_info, in
             if (distance_to_hit < distance_to_light) continue;
         }
         
+        shadow_ray_direction = glm::normalize(shadow_ray_direction);
+        intersection_normal = glm::normalize(intersection_normal);
+        
         
         auto l_dot_n = glm::dot(shadow_ray_direction, intersection_normal) < 0 ? 0.0 : glm::dot(shadow_ray_direction, intersection_normal);
 //        auto l_dot_n = glm::dot(shadow_ray_direction, intersection_normal);
@@ -184,7 +254,7 @@ Color directLight(const std::list<Light *>& lights, HitInformation& hit_info, in
         }
        
         if(ks != glm::vec3(0)) {
-            reflected_ray_direction = glm::normalize((2 * l_dot_n * intersection_normal) - shadow_ray_direction);
+            reflected_ray_direction = (2 * l_dot_n * intersection_normal) - shadow_ray_direction;
             view_direction = glm::normalize(-hit_info.incident_ray.direction);
             auto r_dot_v = glm::dot(reflected_ray_direction, view_direction);
             col += ks * pow(r_dot_v, hit_info.phong_mat->m_shininess) * light->colour;
@@ -218,8 +288,9 @@ glm::mat4 getPixelToWorldTransform(const glm::vec3 & eye,
 }
 
 
-glm::vec4 pixelToWorld(double px, double py, glm::mat4& transformation){
-    return transformation * glm::vec4(px, py, 0, 1);
+glm::vec4 pixelToWorld(glm::vec3 px_pos, glm::mat4& transformation){
+//    std::cout << px_pos.x<< " " << px_pos.y << std::endl;
+    return transformation * glm::vec4(px_pos, 1);
 }
 
 
