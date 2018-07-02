@@ -53,6 +53,10 @@ public:
 	std::string m_name;
 	unsigned int m_nodeId;
     
+    glm::mat4 world_mat;
+    glm::mat4 inverse_world_mat;
+    
+    void updateWorldMatrix(glm::mat4 transformation);
     
     virtual void hitTest(const Ray& r, HitInformation& hit_info);
 

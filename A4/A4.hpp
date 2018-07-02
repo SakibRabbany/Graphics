@@ -43,3 +43,4 @@ Color directLight(const std::list<Light *>& lights, HitInformation& hit_info, in
 void hit (const Ray& r, SceneNode* root, HitInformation& hit_info);
 int rand_int(int min, int max);
 
+void updateSceneGraph();

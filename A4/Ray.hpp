@@ -17,5 +17,6 @@ public:
 
     Ray(glm::vec4 origin, glm::vec4 direction);
     Ray(const Ray& ray);
+    
     glm::vec4 pointAtParameterT(double& t);
 };

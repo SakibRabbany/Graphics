@@ -9,7 +9,7 @@
 #define DISTANCE_T0_IMAGE_PLANE 10
 #define MAX_BOUNCE 100
 #define EPSILON 0.01
-#define ANTIALIAS 1
+#define ANTIALIAS 0
 #define REFLECTION 1
 
 static SceneNode* m_root;
@@ -62,6 +62,8 @@ void A4_Render(
     
     /////////
     m_root = root;
+    updateSceneGraph();
+    
     AmbientLight = ambient;
     
     glm::vec4 origin, direction, direction1, direction2, direction3, direction4, direction5, direction6, direction7, direction8, direction9;
@@ -140,7 +142,7 @@ void A4_Render(
                 image(x, y, 1) = col_sum.g;
                 image(x, y, 2) = col_sum.b;
             } else {
-                glm::vec4 world_coord = pixelToWorld(glm::vec3(x, y,0), transformation);
+                glm::vec4 world_coord = pixelToWorld(glm::vec3(x, y, 0), transformation);
                 direction = (world_coord - origin);
                 
                 Ray r = Ray(origin, direction);
@@ -177,19 +179,20 @@ Color rayColor(const Ray& r, const std::list<Light *> & lights, int counter) {
         col += hit_info.phong_mat->m_kd * AmbientLight;
         
         if (hit_info.phong_mat->m_kd != glm::vec3(0)) {
-            col += directLight(lights, hit_info, counter);
+            col +=  directLight(lights, hit_info, counter);
         }
 
         
         if (REFLECTION) {
             if (hit_info.phong_mat->m_ks != glm::vec3(0) and counter < MAX_BOUNCE){
                 counter++;
-                glm::vec4 reflected_direction = hit_info.incident_ray.direction - (2 * glm::dot(hit_info.incident_ray.direction, hit_info.normal) * hit_info.normal);
+                glm::vec4 reflected_direction = hit_info.incident_ray.direction -
+                                                (2 * glm::dot(hit_info.incident_ray.direction, hit_info.normal) * hit_info.normal);
                 glm::vec4 intersection_point = hit_info.incident_ray.origin + (hit_info.t * hit_info.incident_ray.direction);
                 
                 Ray reflected_ray = Ray(intersection_point, reflected_direction);
                 
-                col += hit_info.phong_mat->m_ks * rayColor(reflected_ray, lights, counter) * hit_info.phong_mat->m_shininess/100;
+                col += hit_info.phong_mat->m_ks * rayColor(reflected_ray, lights, counter) * hit_info.phong_mat->m_shininess/120;
             }
         }
     } else {
@@ -222,7 +225,10 @@ Color directLight(const std::list<Light *>& lights, HitInformation& hit_info, in
     
     double distance_to_light, distance_to_hit;
     
-    intersection_point = hit_info.incident_ray.pointAtParameterT(hit_info.t);
+    double x = hit_info.t - EPSILON;
+    
+//    intersection_point = hit_info.incident_ray.pointAtParameterT(x);
+    intersection_point = hit_info.incident_ray.origin + (x * hit_info.incident_ray.direction);
 //    intersection_point = hit_info.hit_point;
     intersection_normal = (hit_info.normal);
     glm::vec3 kd, ks;
@@ -235,9 +241,8 @@ Color directLight(const std::list<Light *>& lights, HitInformation& hit_info, in
         light_position = glm::vec4(light->position, 1);
         
         shadow_ray_direction = glm::normalize(light_position - intersection_point);
-        shadow_ray_origin = intersection_point + (shadow_ray_direction *EPSILON);
+        shadow_ray_origin = intersection_point;
         
-//        std::cout << "initial shadow ray: " << glm::to_string(shadow_ray_origin) << " " << glm::to_string(shadow_ray_direction) << std::endl;
 
         
         Ray shadow_ray = Ray(shadow_ray_origin, shadow_ray_direction);
@@ -247,11 +252,9 @@ Color directLight(const std::list<Light *>& lights, HitInformation& hit_info, in
         HitInformation shadow_ray_info = HitInformation(shadow_ray);
         hit(shadow_ray, m_root, shadow_ray_info);
         
-//        std::cout << "final shadow ray: " << glm::to_string(shadow_ray_origin) << " " << glm::to_string(shadow_ray_direction) << std::endl;
-
         
         if (shadow_ray_info.hit) {
-            distance_to_hit = glm::length((shadow_ray.pointAtParameterT(shadow_ray_info.t) - shadow_ray_origin));
+            distance_to_hit = glm::length(((shadow_ray_info.incident_ray.origin + (shadow_ray_info.t * shadow_ray_info.incident_ray.direction)) - shadow_ray_origin));
             if (distance_to_hit < distance_to_light) continue;
         }
         
@@ -260,7 +263,6 @@ Color directLight(const std::list<Light *>& lights, HitInformation& hit_info, in
         
         
         auto l_dot_n = glm::dot(shadow_ray_direction, intersection_normal) < 0 ? 0.0 : glm::dot(shadow_ray_direction, intersection_normal);
-//        auto l_dot_n = glm::dot(shadow_ray_direction, intersection_normal);
 
         if (kd != glm::vec3(0)){
             col += kd * l_dot_n * light->colour;
@@ -317,9 +319,15 @@ glm::mat4 S2(double image_width, double image_height, double plane_width, double
 
 glm::mat4 R3(const glm::vec3 & eye, const glm::vec3 & view, const glm::vec3 & up){
     
-    glm::vec3 w = glm::normalize(glm::vec3(view - eye));
-    glm::vec3 u = -glm::normalize(glm::cross(w, up));
-    glm::vec3 v = glm::cross(u, w);
+//    glm::vec3 w = glm::normalize(glm::vec3(view - eye));
+//    glm::vec3 u = -glm::normalize(glm::cross(w, up));
+//    glm::vec3 v = glm::cross(u, w);
+    
+    glm::vec3 w, u, v;
+    
+    w = glm::normalize(view);
+    u = glm::cross(glm::normalize(up), w);
+    v = glm::cross(u, w);
     
     glm::vec4 col0 = glm::vec4(u.x, u.y, u.z, 0);
     glm::vec4 col1 = glm::vec4(v.x, v.y, v.z, 0);
@@ -337,6 +345,9 @@ void hit (const Ray& r, SceneNode* root, HitInformation& hit_info) {
     root->hitTest(r, hit_info);
 }
 
+void updateSceneGraph () {
+    m_root->updateWorldMatrix(glm::mat4(1));
+}
 
 
 

@@ -13,7 +13,7 @@
 HitInformation::HitInformation()
     :   hit(false),
         incident_ray(Ray(glm::vec4(0), glm::vec4(0))),
-        t(DBL_MAX),
+        t(0),
         hit_point(glm::vec4(0)),
         normal(glm::vec4(0)),
         node(nullptr),
@@ -24,7 +24,7 @@ HitInformation::HitInformation()
 HitInformation::HitInformation(const Ray& r)
     :   hit(false),
         incident_ray(Ray(r)),
-        t(DBL_MAX),
+        t(0),
         hit_point(glm::vec4(0)),
         normal(glm::vec4(0)),
         node(nullptr),

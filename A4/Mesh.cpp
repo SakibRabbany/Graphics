@@ -51,18 +51,25 @@ std::ostream& operator<<(std::ostream& out, const Mesh& mesh)
 
 void Mesh::hitTest(const Ray &r, HitInformation &hit_info) {
     double t = 0;
-//    std::cout << "hittesting mesh" << std::endl;
-//    std::cout << "mesh size: " << m_vertices.size() << std::endl;
-
+    double min_t = DBL_MAX;
+    glm::vec4 normal;
+    bool hit = false;
+    
     for (const Triangle& face : m_faces) {
-        bool res = kramer(r.origin, r.direction, m_vertices[face.v1], m_vertices[face.v2], m_vertices[face.v3], t);
-//        std::cout << "t: " << t << std::endl;
-        if (res and t > 0 and t < hit_info.t) {
-            hit_info.t = t;
-            hit_info.hit = true;
-            hit_info.normal = glm::vec4(glm::normalize(glm::triangleNormal(m_vertices[face.v1], m_vertices[face.v2], m_vertices[face.v3])), 0);
-            
-            hit_info.hit_point = r.origin + (r.direction * t);
+        bool res = kramer(r.origin, r.direction, m_vertices[face.v1],
+                                                 m_vertices[face.v2],
+                                                 m_vertices[face.v3], t);
+        if (res and t > 0 and t < min_t) {
+            hit = true;
+            normal = glm::vec4(glm::triangleNormal(m_vertices[face.v1], m_vertices[face.v2], m_vertices[face.v3]), 0);
+            min_t = t;
         }
+        
+    }
+    
+    if (hit) {
+        hit_info.t = min_t;
+        hit_info.hit = true;
+        hit_info.normal = glm::normalize(normal);
     }
 }

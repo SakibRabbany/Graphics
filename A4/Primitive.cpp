@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <glm/ext.hpp>
+#include "Ray.hpp"
 
 //void Primitive::hitTest(const Ray &r, HitInformation& hit_info){
 //
@@ -49,6 +50,8 @@ void NonhierSphere::hitTest(const Ray &r, HitInformation& hit_info) {
 
     
     double a, b, c = 0;
+    double min_t = DBL_MAX;
+    bool hit = false;
     
     
     glm::vec4 a_sub_c = r.origin - glm::vec4(m_pos, 1);
@@ -60,28 +63,25 @@ void NonhierSphere::hitTest(const Ray &r, HitInformation& hit_info) {
     double roots[2];
     size_t num_roots = quadraticRoots(a, b, c, roots);
     
-    if (num_roots == 0) hit_info.hit = false;
     if (num_roots == 1) {
-//        std::cout << "1 root" << std::endl;
-        if (roots[0] > 0 and roots[0] < hit_info.t) {
-            hit_info.t = roots[0];
-            hit_info.hit = true;
+        if (roots[0] > 0 and roots[0] < min_t) {
+            min_t = roots[0];
+            hit = true;
         }
     }
     
     if (num_roots == 2) {
-//        std::cout << "2 root" << std::endl;
-
         double m_min = std::min(roots[0], roots[1]);
-        if (m_min > 0 and m_min < hit_info.t) {
-            hit_info.t = m_min;
-            hit_info.hit = true;
+        if (m_min > 0 and m_min < min_t) {
+            min_t = m_min;
+            hit = true;
         }
     }
     
-    if (hit_info.hit) {
-        hit_info.hit_point = r.origin + (r.direction * (float)hit_info.t);
-        hit_info.normal = (hit_info.hit_point - glm::vec4(m_pos,1));
+    if (hit) {
+        hit_info.t = min_t;
+        hit_info.hit = hit;
+        hit_info.normal = glm::normalize(((r.origin + min_t * r.direction) - glm::vec4(m_pos,1)));
 //        if ((r.origin - glm::vec4(m_pos,1)).length() < m_radius) {
 //            hit_info.normal = -hit_info.normal;
 //        }
@@ -122,18 +122,28 @@ void NonhierBox::hitTest(const Ray &r, HitInformation& hit_info) {
     };
     
     double t = 0;
+    glm::vec4 normal;
+    bool hit = false;
+    
+    double min_t = DBL_MAX;
+    
     for (const glm::vec3& face : faces) {
         bool res = kramer(r.origin, r.direction, verts[(int)face[0]],
                                       verts[(int)face[1]],
                                       verts[(int)face[2]], t);
-        if (res and t > 0 and t < hit_info.t) {
-            hit_info.t = t;
-            hit_info.hit = true;
-            hit_info.normal = glm::vec4(glm::triangleNormal(verts[(int)face[0]],
-                                                  verts[(int)face[1]],
-                                                  verts[(int)face[2]]),0);
-            hit_info.hit_point = r.origin + (r.direction * t);
+        if (res and t > 0 and t < min_t) {
+            hit = true;
+            normal = glm::vec4(glm::triangleNormal(verts[(int)face[0]],
+                                                   verts[(int)face[1]],
+                                                   verts[(int)face[2]]),0);
+            min_t = t;
         }
+    }
+    
+    if (hit) {
+        hit_info.t = min_t;
+        hit_info.hit = true;
+        hit_info.normal = glm::normalize(normal);
     }
 }
 
@@ -150,7 +160,7 @@ bool Primitive::kramer(const glm::vec4& origin,
     bool res(false);
     glm::mat3  mat, mat1, mat2, mat3;
     glm::vec3 o, dir, c1, c2, c3, r;
-    double d, d1, d2, d3, gamma, beta;
+    float d, d1, d2, d3, gamma, beta;
     
     o = glm::vec3(origin.x, origin.y, origin.z);
     dir = glm::vec3(direction.x, direction.y, direction.z);
