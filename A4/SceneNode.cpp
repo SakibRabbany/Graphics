@@ -146,9 +146,9 @@ void SceneNode::hitTest(const Ray& r, HitInformation& hit_info){
     }
     
     if (hit_info.hit) {
-//        hit_info.hit_point = trans * hit_info.hit_point;
-//        glm::mat3 inverse = glm::mat3(invtrans);
-//        hit_info.normal = glm::vec4((glm::transpose(inverse) * glm::vec3(hit_info.normal)),0);
+        hit_info.hit_point = trans * hit_info.hit_point;
+        glm::mat3 inverse = glm::mat3(invtrans);
+        hit_info.normal = glm::normalize(glm::vec4((glm::transpose(inverse) * glm::vec3(hit_info.normal)),0));
     }
 }
 

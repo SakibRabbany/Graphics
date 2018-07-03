@@ -82,6 +82,7 @@ void NonhierSphere::hitTest(const Ray &r, HitInformation& hit_info) {
         hit_info.t = min_t;
         hit_info.hit = hit;
         hit_info.normal = glm::normalize(((r.origin + min_t * r.direction) - glm::vec4(m_pos,1)));
+        hit_info.hit_point = r.origin + ((min_t - 0.01) * r.direction);
 //        if ((r.origin - glm::vec4(m_pos,1)).length() < m_radius) {
 //            hit_info.normal = -hit_info.normal;
 //        }
@@ -144,6 +145,7 @@ void NonhierBox::hitTest(const Ray &r, HitInformation& hit_info) {
         hit_info.t = min_t;
         hit_info.hit = true;
         hit_info.normal = glm::normalize(normal);
+        hit_info.hit_point = r.origin + ((min_t - 0.01) * r.direction);
     }
 }
 

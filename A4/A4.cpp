@@ -189,7 +189,8 @@ Color rayColor(const Ray& r, const std::list<Light *> & lights, int counter) {
                 glm::vec4 reflected_direction = hit_info.incident_ray.direction -
                                                 (2 * glm::dot(hit_info.incident_ray.direction, hit_info.normal) * hit_info.normal);
                 glm::vec4 intersection_point = hit_info.incident_ray.origin + (hit_info.t * hit_info.incident_ray.direction);
-                
+//                glm::vec4 intersection_point = hit_info.hit_point;
+
                 Ray reflected_ray = Ray(intersection_point, reflected_direction);
                 
                 col += hit_info.phong_mat->m_ks * rayColor(reflected_ray, lights, counter) * hit_info.phong_mat->m_shininess/120;
@@ -240,7 +241,7 @@ Color directLight(const std::list<Light *>& lights, HitInformation& hit_info, in
     for (const Light* light : lights) {
         light_position = glm::vec4(light->position, 1);
         
-        shadow_ray_direction = glm::normalize(light_position - intersection_point);
+        shadow_ray_direction = (light_position - intersection_point);
         shadow_ray_origin = intersection_point;
         
 

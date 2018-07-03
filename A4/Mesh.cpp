@@ -71,5 +71,6 @@ void Mesh::hitTest(const Ray &r, HitInformation &hit_info) {
         hit_info.t = min_t;
         hit_info.hit = true;
         hit_info.normal = glm::normalize(normal);
+        hit_info.hit_point = r.origin + ((min_t - 0.01) * r.direction);
     }
 }
