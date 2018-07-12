@@ -40,6 +40,10 @@ scene_root:add_child(steldodec)
 white_light = gr.light({-100.0, 150.0, 400.0}, {0.9, 0.9, 0.9}, {1, 0, 0})
 orange_light = gr.light({400.0, 100.0, 150.0}, {0.7, 0.0, 0.7}, {1, 0, 0})
 
-gr.render(scene_root, 'nonhier.png', 256, 256,
+al_wh = gr.area_light({-100.0, 150.0, 400.0}, {0.9, 0.9, 0.9}, {1, 0, 0}, 15)
+al_or = gr.area_light({400.0, 100.0, 150.0}, {0.7, 0.0, 0.7}, {1, 0, 0}, 15)
+
+
+gr.render(scene_root, 'nonhier.png', 512, 512,
 	  {0, 0, 800}, {0, 0, -1}, {0, 1, 0}, 50,
-	  {0.3, 0.3, 0.3}, {white_light, orange_light})
+	  {0.3, 0.3, 0.3}, {al_wh, al_or})
