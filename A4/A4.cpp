@@ -9,8 +9,8 @@
 #define DISTANCE_T0_IMAGE_PLANE 10
 #define MAX_BOUNCE 100
 #define EPSILON 0.01
-#define ANTIALIAS 1
-#define REFLECTION 1
+#define ANTIALIAS 0
+#define REFLECTION 0
 #define NUM_SHADOW_RAY 100
 
 static SceneNode* m_root;
@@ -277,14 +277,30 @@ Color directLight(const std::list<Light *>& lights, HitInformation& hit_info, in
                 if (distance_to_hit < distance_to_light) continue;
             }
             
+            
+            
             shadow_ray_direction = glm::normalize(shadow_ray_direction);
             intersection_normal = glm::normalize(intersection_normal);
             
             
             auto l_dot_n = glm::dot(shadow_ray_direction, intersection_normal) < 0 ? 0.0 : glm::dot(shadow_ray_direction, intersection_normal);
             
-            if (kd != glm::vec3(0)){
+            Texture *texture = hit_info.getTexture();
+            
+            if (texture) {
+                glm::vec2 uv = hit_info.getUV();
+                std::cout << "in direct light" << std::endl;
+                std::cout << "u: " << uv.x << " v: " << uv.y << std::endl;
+
+                kd = texture->getColor(uv.x,1- uv.y);
+            }
+            
+            if (texture){
                 col_sum += kd * l_dot_n * light->colour;
+            } else {
+                if (kd != glm::vec3(0)) {
+                    col_sum += kd * l_dot_n * light->colour;
+                }
             }
             
             if(ks != glm::vec3(0)) {

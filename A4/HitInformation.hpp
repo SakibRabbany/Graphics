@@ -7,6 +7,7 @@
 //
 #pragma once
 #include "Ray.hpp"
+#include "Texture.hpp"
 #include "PhongMaterial.hpp"
 
 class SceneNode;
@@ -25,5 +26,9 @@ struct HitInformation {
     HitInformation(const Ray& r);
     HitInformation(const Ray& r, double t);
     HitInformation(bool intersect, const Ray& r, double t);
+    
+    Texture* getTexture();
+    glm::vec2 getUV();
+    double u, v;
 };
 

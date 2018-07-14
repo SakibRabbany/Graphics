@@ -6,6 +6,7 @@ GeometryNode::GeometryNode(
 	: SceneNode( name )
 	, m_material( mat )
 	, m_primitive( prim )
+    , m_texture( nullptr )
 {
 	m_nodeType = NodeType::GeometryNode;
 }
@@ -32,7 +33,7 @@ void GeometryNode::hitTest(const Ray &r, HitInformation &hit_info) {
     trans_direction = invtrans * r.direction;
     Ray transformed_ray(trans_origin, trans_direction);
     
-    HitInformation prim_hit_info = HitInformation();
+    HitInformation prim_hit_info = HitInformation(hit_info.incident_ray);
     
     m_primitive->hitTest(transformed_ray, prim_hit_info);
     
@@ -48,6 +49,8 @@ void GeometryNode::hitTest(const Ray &r, HitInformation &hit_info) {
             hit_info.node = this;
             hit_info.phong_mat = (PhongMaterial*) m_material;
             hit_info.hit_point = prim_hit_info.hit_point;
+            hit_info.u = prim_hit_info.u;
+            hit_info.v = prim_hit_info.v;
         } else {
             if (prim_hit_info.t < hit_info.t) {
                 hit_info.t = prim_hit_info.t;
@@ -57,6 +60,8 @@ void GeometryNode::hitTest(const Ray &r, HitInformation &hit_info) {
                 hit_info.node = this;
                 hit_info.phong_mat = (PhongMaterial*) m_material;
                 hit_info.hit_point = prim_hit_info.hit_point;
+                hit_info.u = prim_hit_info.u;
+                hit_info.v = prim_hit_info.v;
             }
         }
     }

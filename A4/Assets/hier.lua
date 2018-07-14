@@ -26,6 +26,22 @@ p2:set_material(gold)
 p2:scale(0.8, 4, 0.8)
 p2:translate(1.6, 0, -0.4)
 
+b1 = gr.cube('b1')
+scene:add_child(b1)
+b1:scale(2, 2, 2)
+b1:set_material(blue)
+b1:set_texture("Assets/sample3.png")
+b1:translate(-7, 0, -5)
+
+s2 = gr.sphere('s2')
+scene:add_child(s2)
+s2:set_material(blue)
+s2:set_texture("Assets/sample4.png")
+s2:scale(4, 4, 4)
+s2:translate(-7, 4, -5)
+
+
+
 s = gr.sphere('s')
 arc:add_child(s)
 s:set_material(gold)

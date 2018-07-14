@@ -7,6 +7,8 @@
 //
 
 #include "HitInformation.hpp"
+#include "SceneNode.hpp"
+#include "GeometryNode.hpp"
 #include <glm/glm.hpp>
 
 
@@ -54,3 +56,20 @@ HitInformation::HitInformation(bool intersect, const Ray& r, double t)
 {
 }
 
+Texture* HitInformation::getTexture(){
+    if (node->m_nodeType == NodeType::GeometryNode){
+        GeometryNode* g_node = dynamic_cast<GeometryNode*>(node);
+        return g_node->m_texture;
+    }
+    
+    return nullptr;
+}
+
+
+glm::vec2 HitInformation::getUV() {
+//    if (node->m_nodeType == NodeType::GeometryNode){
+//        GeometryNode* g_node = dynamic_cast<GeometryNode*>(node);
+        return glm::vec2(u,v);
+//    }
+    
+}

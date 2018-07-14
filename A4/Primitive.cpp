@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <glm/ext.hpp>
+
 #include "Ray.hpp"
 
 //void Primitive::hitTest(const Ray &r, HitInformation& hit_info){
@@ -60,7 +61,7 @@ void NonhierSphere::hitTest(const Ray &r, HitInformation& hit_info) {
     b = glm::dot(r.direction, a_sub_c) * 2;
     c = glm::dot(a_sub_c, a_sub_c) - (m_radius * m_radius);
     
-    double roots[2];
+    double roots[2], u, v;
     size_t num_roots = quadraticRoots(a, b, c, roots);
     
     if (num_roots == 1) {
@@ -94,6 +95,32 @@ void NonhierSphere::hitTest(const Ray &r, HitInformation& hit_info) {
         hit_info.hit = hit;
         hit_info.normal = glm::normalize(((r.origin + min_t * r.direction) - glm::vec4(m_pos,1)));
         hit_info.hit_point = r.origin + ((min_t - 0.01) * r.direction);
+//        u = m_radius + glm::atan(hit_info.hit_point.z, hit_info.hit_point.x) / (2 * 3.142);
+//        v = m_radius - glm::asin(hit_info.hit_point.y) / 3.142;
+//        u = 0.5 + glm::atan(hit_info.hit_point.z, hit_info.hit_point.x) / (2 * 3.142);
+//        v = 0.5 - glm::asin(hit_info.hit_point.y) / 3.142;
+//        u = glm::acos(hit_info.hit_point.z / m_radius) / M_PI;
+//        v = glm::acos(hit_info.hit_point.x / (m_radius * glm::sin(M_PI * u))) / 2 * M_PI;
+        
+        glm::vec4 pole = glm::vec4(0,1,0,0) ;
+        glm::vec4 equator = glm::vec4(1,0,0,0);
+//        equator.x += m_radius;
+        double phi = 0, theta = 0;
+        
+        phi = glm::acos(glm::dot(pole, hit_info.normal));
+        v=phi/M_PI;
+        
+        theta = (glm::acos( glm::dot(hit_info.normal, equator)/ glm::sin( phi )) / ( 2 * M_PI));
+                 
+        if ( glm::dot(glm::vec3(hit_info.normal), glm::cross(glm::vec3(pole), glm::vec3(equator))) > 0 ) {
+            u = theta;
+        } else {
+            u = 1 - theta;
+        }
+    
+        
+        hit_info.u = u;
+        hit_info.v = v;
 //        if ((r.origin - glm::vec4(m_pos,1)).length() < m_radius) {
 //            hit_info.normal = -hit_info.normal;
 //        }
@@ -133,11 +160,13 @@ void NonhierBox::hitTest(const Ray &r, HitInformation& hit_info) {
         glm::vec3(5, 1, 0),
     };
     
-    double t = 0;
+    double t = 0, u, v;
     glm::vec4 normal;
     bool hit = false;
     
     double min_t = DBL_MAX;
+    
+    int ind = 0;
     
     for (const glm::vec3& face : faces) {
         bool res = kramer(r.origin, r.direction, verts[(int)face[0]],
@@ -149,7 +178,34 @@ void NonhierBox::hitTest(const Ray &r, HitInformation& hit_info) {
                                                    verts[(int)face[1]],
                                                    verts[(int)face[2]]),0);
             min_t = t;
+            glm::vec4 hp = r.origin + r.direction * min_t;
+
+            if (ind == 0 or ind == 1) {
+                u = (glm::vec3(hp) - m_pos).x/m_size;
+                v = (glm::vec3(hp) - m_pos).y/m_size;
+            }
+            if (ind == 2 or ind == 3) {
+                u = (glm::vec3(hp) - m_pos).z/m_size;
+                v = (glm::vec3(hp) - m_pos).y/m_size;
+            }
+            if (ind == 4 or ind == 5) {
+                u = (glm::vec3(hp) - m_pos).x/m_size;
+                v = (glm::vec3(hp) - m_pos).y/m_size;
+            }
+            if (ind == 6 or ind == 7) {
+                u = (glm::vec3(hp) - m_pos).z/m_size;
+                v = (glm::vec3(hp)- m_pos).y/m_size;
+            }
+            if (ind == 8 or ind == 9) {
+                u = (glm::vec3(hp) - m_pos).x/m_size;
+                v = (glm::vec3(hp) - m_pos).z/m_size;
+            }
+            if (ind == 10 or ind == 11) {
+                u = (glm::vec3(hp) - m_pos).x/m_size;
+                v = (glm::vec3(hp) - m_pos).z/m_size;
+            }
         }
+        ind++;
     }
     
     if (hit) {
@@ -157,6 +213,12 @@ void NonhierBox::hitTest(const Ray &r, HitInformation& hit_info) {
         hit_info.hit = true;
         hit_info.normal = glm::normalize(normal);
         hit_info.hit_point = r.origin + ((min_t - 0.01) * r.direction);
+        hit_info.u = u;
+        hit_info.v = v;
+        
+        std::cout << "in primitive" << std::endl;
+        std::cout << "u: " << u << "v: " << v << std::endl;
+
     }
 }
 
