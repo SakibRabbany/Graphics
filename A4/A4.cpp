@@ -7,15 +7,25 @@
 
 
 #define DISTANCE_T0_IMAGE_PLANE 10
-#define MAX_BOUNCE 100
+#define MAX_BOUNCE 5
 #define EPSILON 0.01
 #define ANTIALIAS 0
-#define REFLECTION 0
-#define NUM_SHADOW_RAY 100
+#define REFLECTION 1
+#define GLOSSY_REFLECTION 1
+#define REFRACTION 0
+#define GLOSSY_REFRACTION 0
+
+#define NUM_SHADOW_RAY 15
+#define NUM_GLOSSY_REFLECTION_RAY 20
+#define NUM_GLOSSY_REFRACTION_RAY 20
+
 
 static SceneNode* m_root;
 static int pixel_count = 0;
 static glm::vec3 AmbientLight;
+
+static std::default_random_engine generator;
+
 
 int rand_int(int min, int max) {
     std::random_device rd;
@@ -120,15 +130,15 @@ void A4_Render(
                 Ray r8 = Ray(origin, direction8);
                 Ray r9 = Ray(origin, direction9);
 
-                color1 = rayColor(r1, lights, 0);
-                color2 = rayColor(r2, lights, 0);
-                color3 = rayColor(r3, lights, 0);
-                color4 = rayColor(r4, lights, 0);
-                color5 = rayColor(r5, lights, 0);
-                color6 = rayColor(r6, lights, 0);
-                color7 = rayColor(r7, lights, 0);
-                color8 = rayColor(r8, lights, 0);
-                color9 = rayColor(r9, lights, 0);
+                color1 = rayColor(r1, lights, 0, PhongMaterial::Air);
+                color2 = rayColor(r2, lights, 0, PhongMaterial::Air);
+                color3 = rayColor(r3, lights, 0, PhongMaterial::Air);
+                color4 = rayColor(r4, lights, 0, PhongMaterial::Air);
+                color5 = rayColor(r5, lights, 0, PhongMaterial::Air);
+                color6 = rayColor(r6, lights, 0, PhongMaterial::Air);
+                color7 = rayColor(r7, lights, 0, PhongMaterial::Air);
+                color8 = rayColor(r8, lights, 0, PhongMaterial::Air);
+                color9 = rayColor(r9, lights, 0, PhongMaterial::Air);
                 
                 col_sum = color1 + color2 + color3 + color4 + color5 + color6 + color7 + color8 + color9;
 
@@ -155,7 +165,7 @@ void A4_Render(
                 
                 std::cout << "Progress: " << prog*100 << std::endl;
                 
-                Color rc = rayColor(r, lights, 0);
+                Color rc = rayColor(r, lights, 0, PhongMaterial::Air);
                 image(x, y, 0) = rc.r;
                 image(x, y, 1) = rc.g;
                 image(x, y, 2) = rc.b;
@@ -167,13 +177,16 @@ void A4_Render(
 }
 
 
-Color rayColor(const Ray& r, const std::list<Light *> & lights, int counter) {
+Color rayColor(const Ray& r, const std::list<Light *> & lights, int counter, PhongMaterial* from_material) {
     Color kd, ks , ke, col;
+    double reflectance;
     col = glm::vec3(0);
     
     if (counter > MAX_BOUNCE) return col;
     
+    
     HitInformation hit_info = HitInformation(r);
+    hit_info.from_material = from_material;
     
     hit(r, m_root, hit_info);
     
@@ -181,29 +194,58 @@ Color rayColor(const Ray& r, const std::list<Light *> & lights, int counter) {
         col += hit_info.phong_mat->m_kd * AmbientLight;
         
         if (hit_info.phong_mat->m_kd != glm::vec3(0)) {
-            col +=  directLight(lights, hit_info, counter);
+            col += directLight(lights, hit_info, counter);
         }
-
+        
+        reflectance = calculateReflectance(glm::normalize(glm::vec3(hit_info.normal)),
+                                           glm::normalize(glm::vec3(hit_info.incident_ray.direction)),
+                                           hit_info.from_material->m_refractive_index,
+                                           hit_info.phong_mat->m_refractive_index);
+        
+//        glm::vec4 reflected_direction = hit_info.incident_ray.direction - (2 * glm::dot(hit_info.incident_ray.direction, hit_info.normal) * hit_info.normal);
+        glm::vec4 reflected_direction = getReflectedDirection(hit_info.incident_ray.direction, hit_info.normal);
+        glm::vec4 intersection_point = hit_info.incident_ray.origin + ((hit_info.t - 0.001) * hit_info.incident_ray.direction);
+        //                glm::vec4 intersection_point = hit_info.hit_point;
+        
+        Ray reflected_ray = Ray(intersection_point, reflected_direction);
         
         if (REFLECTION) {
             if (hit_info.phong_mat->m_ks != glm::vec3(0) and counter < MAX_BOUNCE){
                 counter++;
-                glm::vec4 reflected_direction = hit_info.incident_ray.direction -
-                                                (2 * glm::dot(hit_info.incident_ray.direction, hit_info.normal) * hit_info.normal);
-                glm::vec4 intersection_point = hit_info.incident_ray.origin + (hit_info.t * hit_info.incident_ray.direction);
-//                glm::vec4 intersection_point = hit_info.hit_point;
-
-                Ray reflected_ray = Ray(intersection_point, reflected_direction);
                 
-                col += hit_info.phong_mat->m_ks * rayColor(reflected_ray, lights, counter) * hit_info.phong_mat->m_shininess/120;
+                std::cout << hit_info.node->m_name << std::endl;
+                std::cout << "reflectance: " << reflectance << std::endl;
+                
+                if (reflectance > 1.0) reflectance = 1.0;
+                
+//                col += hit_info.phong_mat->m_ks * rayColor(reflected_ray, lights, counter, PhongMaterial::Air) * hit_info.phong_mat->m_shininess/120;
+                col += hit_info.phong_mat->m_ks * rayColor(reflected_ray, lights, counter, PhongMaterial::Air) * reflectance;
+
             }
         }
+        
+        if (GLOSSY_REFLECTION) {
+            if (hit_info.phong_mat->m_glossy_coefficients.x > 0) {
+                glm::vec4 glossy_reflect_dir;
+                glm::vec3 glossy_reflect_color = glm::vec3(0);
+                counter++;
+                for (int i = 0 ; i < NUM_GLOSSY_REFLECTION_RAY ; ++i) {
+                    glossy_reflect_dir = perturbe(reflected_direction, hit_info.normal, hit_info.phong_mat->m_glossy_coefficients.y);
+                    Ray glossy_reflect_ray = Ray(intersection_point, glossy_reflect_dir);
+                    glossy_reflect_color += rayColor(glossy_reflect_ray, lights, counter, PhongMaterial::Air);
+                }
+                glossy_reflect_color /= (double)NUM_GLOSSY_REFLECTION_RAY;
+                col += hit_info.phong_mat->m_glossy_coefficients.x * glossy_reflect_color * hit_info.phong_mat->m_ks;
+            }
+        }
+        
+        
     } else {
-        int number = rand_int(1, 100);
-        if (number == 1)
-            col = glm::vec3(1,1,1);
-        else
-            col = glm::vec3(0,0,0);
+//        int number = rand_int(1, 100);
+//        if (number == 1)
+//            col = glm::vec3(1,1,1);
+//        else
+//            col = glm::vec3(0,0,0);
     }
     
     return col;
@@ -289,8 +331,8 @@ Color directLight(const std::list<Light *>& lights, HitInformation& hit_info, in
             
             if (texture) {
                 glm::vec2 uv = hit_info.getUV();
-                std::cout << "in direct light" << std::endl;
-                std::cout << "u: " << uv.x << " v: " << uv.y << std::endl;
+//                std::cout << "in direct light" << std::endl;
+//                std::cout << "u: " << uv.x << " v: " << uv.y << std::endl;
 
                 kd = texture->getColor(uv.x,1- uv.y);
             }
@@ -304,10 +346,16 @@ Color directLight(const std::list<Light *>& lights, HitInformation& hit_info, in
             }
             
             if(ks != glm::vec3(0)) {
-                reflected_ray_direction = (2 * l_dot_n * intersection_normal) - shadow_ray_direction;
-                view_direction = glm::normalize(-hit_info.incident_ray.direction);
-                auto r_dot_v = glm::dot(reflected_ray_direction, view_direction);
-                col_sum += ks * pow(r_dot_v, hit_info.phong_mat->m_shininess) * light->colour;
+//                reflected_ray_direction = (2 * l_dot_n * intersection_normal) - shadow_ray_direction;
+//                view_direction = glm::normalize(-hit_info.incident_ray.direction);
+//                auto r_dot_v = glm::dot(reflected_ray_direction, view_direction);
+//                col_sum += ks * pow(r_dot_v, hit_info.phong_mat->m_shininess) * light->colour;
+                glm::vec3 ri = glm::normalize(glm::vec3(hit_info.incident_ray.direction));
+                glm::vec3 n = glm::normalize(glm::vec3(hit_info.normal));
+                glm::vec3 rr = ri - 2 * n * glm::dot(ri, n);
+                l_dot_n = glm::dot(rr, glm::normalize(glm::vec3(shadow_ray_direction))) > 0.0 ? glm::dot(rr, glm::normalize(glm::vec3(shadow_ray_direction))) : 0.0;
+                double phong_coeff = std::pow(l_dot_n, hit_info.phong_mat->m_shininess);
+                col_sum += phong_coeff * ks * light->colour;
             }
         }
         
@@ -386,6 +434,94 @@ void hit (const Ray& r, SceneNode* root, HitInformation& hit_info) {
 void updateSceneGraph () {
     m_root->updateWorldMatrix(glm::mat4(1));
 }
+
+double calculateReflectance(glm::vec3 normal, glm::vec3 incident_ray_direction, double n_i, double n_t) {
+    double cos_i, cos_t, sin_i_sq, sin_t_sq, n, rs, rp;
+    
+//    n = n_i/n_t;
+//
+//    cos_i = glm::dot(-incident_ray_direction, normal);
+//    sin_i_sq = 1 - (cos_i * cos_i);
+//    sin_t_sq = (n * n) * sin_i_sq;
+//
+//    if (sin_t_sq > 1) {
+//        return 1.0;
+//    }
+//
+//    cos_t = sqrt(1 - sin_t_sq);
+//
+//    rs = (n_t * cos_i - n_i * cos_t) / (n_t * cos_i + n_i * cos_t);
+//    rp = (n_t * cos_t - n_i * cos_i) / (n_i * cos_i + n_t * cos_t);
+    
+    double r_0 = std::pow(((n_i - n_t) / (n_i + n_t)), 2.0);
+    
+    double a = std::pow((1 - glm::dot(-incident_ray_direction, normal)), 5);
+    
+//    return (rp * rp + rs * rs) / 2.0;
+    return r_0 + ((1 - r_0) * a);
+}
+
+
+glm::vec4 perturbe(const glm::vec4& ray_direction, const glm::vec4& normal, double exponent) {
+//    double x1, x2, phi, cosine_theta, sine_theta, cosine_phi, sine_phi;
+    
+    glm::vec3 w = glm::normalize(glm::vec3(ray_direction));
+    
+    glm::vec3 e0 = glm::vec3 (0, 1, 0);
+    glm::vec3 e1 = glm::vec3 (0, 0, 1);
+
+    glm::vec3 u = glm::cross(w, e0);
+    
+    if (glm::length(u) < 0.1) {
+        u = glm::cross(w, e1);
+    }
+    
+    glm::vec3 v = glm::cross(w, u);
+    
+    glm::vec3 perturbed_direction;
+    
+    do {
+        double x1 = getRandomDouble(0.0, 1.0);
+        double x2 = getRandomDouble(0.0, 1.0);
+        
+//        std::cout << "X1: " << x1 << " X2: " << x2 << std::endl;
+        double phi = x1 * 2 * glm::pi<double>();
+        double cosine_theta = glm::pow(x2, (double)1.0/(exponent +1));
+        double sine_theta = glm::sqrt(1 - (cosine_theta * cosine_theta));
+        double cosine_phi = glm::cos(phi);
+        double sine_phi = glm::sin(phi);
+        
+        perturbed_direction = w * cosine_theta + u * cosine_phi * sine_theta + v * sine_phi * sine_theta;
+        
+//        std::cout << "dot: " << glm::dot(perturbed_direction, glm::normalize(glm::vec3(normal))) << std::endl;
+    } while (glm::dot(perturbed_direction, glm::vec3(normal)) <= 0);
+    
+    return glm::vec4(perturbed_direction,0);
+}
+
+double getRandomDouble (double min, double max) {
+    std::uniform_real_distribution<double> distribution(min, max);
+    
+    return distribution(generator);
+}
+
+glm::vec4 getRefractedDirection(const glm::vec4& incident_direction, const glm::vec4& normal, double n_i, double n_t) {
+    double tir = 1 - (pow((n_i/n_t), 2) * (1 - pow(glm::dot(incident_direction, normal), 2)));
+    
+    if (tir < 0) {
+        // return reflected ray
+    }
+    
+    return (-(n_i/n_t) * glm::dot(incident_direction, normal) - sqrt(tir)) * normal + (n_i/n_t) * incident_direction;
+}
+
+
+glm::vec4 getReflectedDirection(const glm::vec4& incident_direction, const glm::vec4& normal) {
+    return incident_direction - (2 * glm::dot(incident_direction, normal) * normal);
+}
+
+
+
 
 
 

@@ -19,7 +19,8 @@ HitInformation::HitInformation()
         hit_point(glm::vec4(0)),
         normal(glm::vec4(0)),
         node(nullptr),
-        phong_mat(nullptr)
+        phong_mat(nullptr),
+        from_material(nullptr)
 {
 }
 
@@ -30,7 +31,8 @@ HitInformation::HitInformation(const Ray& r)
         hit_point(glm::vec4(0)),
         normal(glm::vec4(0)),
         node(nullptr),
-        phong_mat(nullptr)
+        phong_mat(nullptr),
+        from_material(nullptr)
 {
 }
 
@@ -41,7 +43,8 @@ HitInformation::HitInformation(const Ray& r, double t)
         hit_point(glm::vec4(0)),
         normal(glm::vec4(0)),
         node(nullptr),
-        phong_mat(nullptr)
+        phong_mat(nullptr),
+        from_material(nullptr)
 {
 }
 
@@ -52,7 +55,8 @@ HitInformation::HitInformation(bool intersect, const Ray& r, double t)
         hit_point(glm::vec4(0)),
         normal(glm::vec4(0)),
         node(nullptr),
-        phong_mat(nullptr)
+        phong_mat(nullptr),
+        from_material(nullptr)
 {
 }
 

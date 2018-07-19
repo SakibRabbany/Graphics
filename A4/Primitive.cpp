@@ -216,8 +216,8 @@ void NonhierBox::hitTest(const Ray &r, HitInformation& hit_info) {
         hit_info.u = u;
         hit_info.v = v;
         
-        std::cout << "in primitive" << std::endl;
-        std::cout << "u: " << u << "v: " << v << std::endl;
+//        std::cout << "in primitive" << std::endl;
+//        std::cout << "u: " << u << "v: " << v << std::endl;
 
     }
 }

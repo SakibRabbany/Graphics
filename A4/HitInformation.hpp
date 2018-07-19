@@ -20,12 +20,16 @@ struct HitInformation {
     glm::vec4 hit_point;
     glm::vec4 normal;
     SceneNode* node;
+    
     PhongMaterial* phong_mat;
+    PhongMaterial* from_material;
     
     HitInformation();
     HitInformation(const Ray& r);
     HitInformation(const Ray& r, double t);
     HitInformation(bool intersect, const Ray& r, double t);
+    
+    
     
     Texture* getTexture();
     glm::vec2 getUV();

@@ -479,15 +479,21 @@ int gr_material_cmd(lua_State* L)
   gr_material_ud* data = (gr_material_ud*)lua_newuserdata(L, sizeof(gr_material_ud));
   data->material = 0;
   
-  double kd[3], ks[3];
+  double kd[3], ks[3], glossy_coeff[4];
   get_tuple(L, 1, kd, 3);
   get_tuple(L, 2, ks, 3);
 
   double shininess = luaL_checknumber(L, 3);
+    
+  get_tuple(L, 4, glossy_coeff, 4);
+    
+  double refractive_index = luaL_checknumber(L, 5);
   
   data->material = new PhongMaterial(glm::vec3(kd[0], kd[1], kd[2]),
                                      glm::vec3(ks[0], ks[1], ks[2]),
-                                     shininess);
+                                     shininess,
+                                     glm::vec4(glossy_coeff[0], glossy_coeff[1], glossy_coeff[2], glossy_coeff[3]),
+                                     refractive_index);
 
   luaL_newmetatable(L, "gr.material");
   lua_setmetatable(L, -2);
