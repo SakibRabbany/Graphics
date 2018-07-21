@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 
 #include "SceneNode.hpp"
+#include "GeometryNode.hpp"
 #include "Light.hpp"
 #include "Image.hpp"
 #include "Ray.hpp"
@@ -37,7 +38,7 @@ glm::mat4 S2(double image_width, double image_height, double plane_width, double
 glm::mat4 R3(const glm::vec3 & eye, const glm::vec3 & view, const glm::vec3 & up);
 glm::mat4 T4(const glm::vec3 & eye);
 
-Color rayColor(const Ray& r, const std::list<Light *> & lights, int counter, PhongMaterial* from_material);
+Color rayColor(const Ray& r, const std::list<Light *> & lights, int counter, PhongMaterial* from_material, SceneNode* from_node);
 Color directLight(const std::list<Light *>& lights, HitInformation& hit_info, int counter);
 
 double calculateReflectance(glm::vec3 normal, glm::vec3 incident_ray_direction, double n_i, double n_t);
