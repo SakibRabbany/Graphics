@@ -90,8 +90,10 @@ void A4_Render(
 	size_t w = image.width();
     
     #pragma omp parallel for schedule(dynamic, 1) private(col_sum)
-
+	
 	for (uint y = 0; y < h; ++y) {
+		std::cout << "num thread: " <<		omp_get_num_threads() << std::endl;
+
 		for (uint x = 0; x < w; ++x) {
 //            // Red: increasing from top to bottom
 //            image(x, y, 0) = (double)y / h;
