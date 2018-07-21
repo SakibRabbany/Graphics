@@ -78,13 +78,15 @@ void A4_Render(
     
     AmbientLight = ambient;
     
-    glm::vec4 origin, direction, direction1, direction2, direction3, direction4, direction5, direction6, direction7, direction8, direction9;
-    glm::vec3 color, color1, color2, color3, color4, color5, color6, color7, color8, color9, col_sum;
+//    glm::vec4 origin, direction, direction1, direction2, direction3, direction4, direction5, direction6, direction7, direction8, direction9;
+//    glm::vec3 color, color1, color2, color3, color4, color5, color6, color7, color8, color9, col_sum;
+    glm::vec3 col_sum;
+    
     origin = glm::vec4(eye, 1);
 
     glm::mat4 transformation = getPixelToWorldTransform(eye, view, up, fovy, image.width(), image.height());
     
-    glm::vec4 world_coord, world_coord1, world_coord2, world_coord3, world_coord4, world_coord5, world_coord6, world_coord7, world_coord8, world_coord9;
+//    glm::vec4 world_coord, world_coord1, world_coord2, world_coord3, world_coord4, world_coord5, world_coord6, world_coord7, world_coord8, world_coord9;
     
 	size_t h = image.height();
 	size_t w = image.width();
@@ -104,25 +106,25 @@ void A4_Render(
 //                          || (y >= h/2 && x >= w/2)) ? 1.0 : 0.0;
             
             if (ANTIALIAS) {
-                world_coord1 = pixelToWorld(glm::vec3(       x,               y,      0), transformation);
-                world_coord2 = pixelToWorld(glm::vec3(x + 1.0f/3.0f,         y,0),       transformation);
-                world_coord3 = pixelToWorld(glm::vec3(x + 2.0f/3.0f,         y,0),       transformation);
-                world_coord4 = pixelToWorld(glm::vec3(        x,       y + 1.0f/3.0f,0), transformation);
-                world_coord5 = pixelToWorld(glm::vec3(x + 1.0f/3.0f, y + 1.0f/3.0f,0), transformation);
-                world_coord6 = pixelToWorld(glm::vec3(x + 2.0f/3.0f, y + 1.0f/3.0f,0), transformation);
-                world_coord7 = pixelToWorld(glm::vec3(        x,       y + 2.0f/3.0f,0), transformation);
-                world_coord8 = pixelToWorld(glm::vec3(x + 1.0f/3.0f, y + 2.0f/3.0f,0), transformation);
-                world_coord9 = pixelToWorld(glm::vec3(x + 2.0f/3.0f, y + 2.0f/3.0f,0), transformation);
+                glm::vec4 world_coord1 = pixelToWorld(glm::vec3(       x,               y,      0), transformation);
+                glm::vec4 world_coord2 = pixelToWorld(glm::vec3(x + 1.0f/3.0f,         y,0),       transformation);
+                glm::vec4 world_coord3 = pixelToWorld(glm::vec3(x + 2.0f/3.0f,         y,0),       transformation);
+                glm::vec4 world_coord4 = pixelToWorld(glm::vec3(        x,       y + 1.0f/3.0f,0), transformation);
+                glm::vec4 world_coord5 = pixelToWorld(glm::vec3(x + 1.0f/3.0f, y + 1.0f/3.0f,0), transformation);
+                glm::vec4 world_coord6 = pixelToWorld(glm::vec3(x + 2.0f/3.0f, y + 1.0f/3.0f,0), transformation);
+                glm::vec4 world_coord7 = pixelToWorld(glm::vec3(        x,       y + 2.0f/3.0f,0), transformation);
+                glm::vec4 world_coord8 = pixelToWorld(glm::vec3(x + 1.0f/3.0f, y + 2.0f/3.0f,0), transformation);
+                glm::vec4 world_coord9 = pixelToWorld(glm::vec3(x + 2.0f/3.0f, y + 2.0f/3.0f,0), transformation);
 
-                direction1 = (world_coord1 - origin);
-                direction2 = (world_coord2 - origin);
-                direction3 = (world_coord3 - origin);
-                direction4 = (world_coord4 - origin);
-                direction5 = (world_coord5 - origin);
-                direction6 = (world_coord6 - origin);
-                direction7 = (world_coord7 - origin);
-                direction8 = (world_coord8 - origin);
-                direction9 = (world_coord9 - origin);
+                glm::vec4 direction1 = (world_coord1 - origin);
+                glm::vec4 direction2 = (world_coord2 - origin);
+                glm::vec4 direction3 = (world_coord3 - origin);
+                glm::vec4 direction4 = (world_coord4 - origin);
+                glm::vec4 direction5 = (world_coord5 - origin);
+                glm::vec4 direction6 = (world_coord6 - origin);
+                glm::vec4 direction7 = (world_coord7 - origin);
+                glm::vec4 direction8 = (world_coord8 - origin);
+                glm::vec4 direction9 = (world_coord9 - origin);
 
                 
                 Ray r1 = Ray(origin, direction1);
@@ -135,19 +137,19 @@ void A4_Render(
                 Ray r8 = Ray(origin, direction8);
                 Ray r9 = Ray(origin, direction9);
 
-                color1 = rayColor(r1, lights, 0, PhongMaterial::Air, nullptr);
-                color2 = rayColor(r2, lights, 0, PhongMaterial::Air, nullptr);
-                color3 = rayColor(r3, lights, 0, PhongMaterial::Air, nullptr);
-                color4 = rayColor(r4, lights, 0, PhongMaterial::Air, nullptr);
-                color5 = rayColor(r5, lights, 0, PhongMaterial::Air, nullptr);
-                color6 = rayColor(r6, lights, 0, PhongMaterial::Air, nullptr);
-                color7 = rayColor(r7, lights, 0, PhongMaterial::Air, nullptr);
-                color8 = rayColor(r8, lights, 0, PhongMaterial::Air, nullptr);
-                color9 = rayColor(r9, lights, 0, PhongMaterial::Air, nullptr);
+                glm::vec3 color1 = rayColor(r1, lights, 0, PhongMaterial::Air, nullptr);
+                glm::vec3 color2 = rayColor(r2, lights, 0, PhongMaterial::Air, nullptr);
+                glm::vec3 color3 = rayColor(r3, lights, 0, PhongMaterial::Air, nullptr);
+                glm::vec3 color4 = rayColor(r4, lights, 0, PhongMaterial::Air, nullptr);
+                glm::vec3 color5 = rayColor(r5, lights, 0, PhongMaterial::Air, nullptr);
+                glm::vec3 color6 = rayColor(r6, lights, 0, PhongMaterial::Air, nullptr);
+                glm::vec3 color7 = rayColor(r7, lights, 0, PhongMaterial::Air, nullptr);
+                glm::vec3 color8 = rayColor(r8, lights, 0, PhongMaterial::Air, nullptr);
+                glm::vec3 color9 = rayColor(r9, lights, 0, PhongMaterial::Air, nullptr);
                 
                 col_sum = color1 + color2 + color3 + color4 + color5 + color6 + color7 + color8 + color9;
 
-                col_sum = col_sum/9;
+                col_sum = col_sum/9.0;
                 pixel_count++;
                 
                 double prog = (double)pixel_count/(double)(image.width()*image.height());
