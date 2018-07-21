@@ -82,7 +82,7 @@ void A4_Render(
 //    glm::vec3 color, color1, color2, color3, color4, color5, color6, color7, color8, color9, col_sum;
     glm::vec3 col_sum;
     
-    origin = glm::vec4(eye, 1);
+    glm::vec4 origin = glm::vec4(eye, 1);
 
     glm::mat4 transformation = getPixelToWorldTransform(eye, view, up, fovy, image.width(), image.height());
     
@@ -161,10 +161,10 @@ void A4_Render(
                 image(x, y, 2) = col_sum.b;
             } else {
                 glm::vec4 world_coord = pixelToWorld(glm::vec3(x, y, 0), transformation);
-                direction = (world_coord - origin);
+                glm::vec4 direction = (world_coord - origin);
                 
                 Ray r = Ray(origin, direction);
-                color = glm::vec3(0);
+                glm::vec3 color = glm::vec3(0);
                 
                 pixel_count++;
                 
