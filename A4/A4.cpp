@@ -10,7 +10,7 @@
 #define DISTANCE_T0_IMAGE_PLANE 10
 #define MAX_BOUNCE 5
 #define EPSILON 0.01
-#define ANTIALIAS 1
+#define ANTIALIAS 0
 #define REFLECTION 1
 #define GLOSSY_REFLECTION 1
 #define REFRACTION 1
@@ -81,6 +81,8 @@ void A4_Render(
 //    glm::vec4 origin, direction, direction1, direction2, direction3, direction4, direction5, direction6, direction7, direction8, direction9;
 //    glm::vec3 color, color1, color2, color3, color4, color5, color6, color7, color8, color9, col_sum;
     glm::vec3 col_sum;
+    glm::vec3 color = glm::vec3(0);
+
     
     glm::vec4 origin = glm::vec4(eye, 1);
 
@@ -91,7 +93,7 @@ void A4_Render(
 	size_t h = image.height();
 	size_t w = image.width();
     
-    #pragma omp parallel for schedule(dynamic, 1) private(col_sum)
+    #pragma omp parallel for schedule(dynamic, 1) private(color)
 	
 	for (uint y = 0; y < h; ++y) {
 		std::cout << "num thread: " <<		omp_get_num_threads() << std::endl;
@@ -164,7 +166,6 @@ void A4_Render(
                 glm::vec4 direction = (world_coord - origin);
                 
                 Ray r = Ray(origin, direction);
-                glm::vec3 color = glm::vec3(0);
                 
                 pixel_count++;
                 
@@ -197,6 +198,8 @@ Color rayColor(const Ray& r, const std::list<Light *> & lights, int counter, Pho
     
     hit(r, m_root, hit_info);
     PhongMaterial* temp_phong;
+    temp_phong = hit_info.phong_mat;
+
     
     if (hit_info.hit) {
         
@@ -207,7 +210,6 @@ Color rayColor(const Ray& r, const std::list<Light *> & lights, int counter, Pho
 //
 //            std::cout << "hit the same node" << std::endl;
             hit_info.normal -= hit_info.normal;
-            temp_phong = hit_info.phong_mat;
             hit_info.phong_mat = PhongMaterial::Air;
             from_node = nullptr;
         }
