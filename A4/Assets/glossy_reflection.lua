@@ -132,6 +132,6 @@ white_area_light = gr.area_light({2, 2, 2}, {0.8, 0.8, 0.8}, {1, 0, 0}, 0.5)
 white_light = gr.light({2.0, 2.0, 4}, {0.8, 0.8, 0.8}, {1, 0, 0})
 
 
-gr.render(scene, 'glossy_refraction.png', 256, 256,
+gr.render(scene, 'glossy_reflection.png', 256, 256,
 	  {0, 0, 30}, {0, 0, -1}, {0, 1, 0}, 50,
 	  {0.4, 0.4, 0.4}, {white_light})
