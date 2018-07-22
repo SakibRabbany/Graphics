@@ -11,6 +11,7 @@
 #define MAX_BOUNCE 5
 #define EPSILON 0.01
 #define ANTIALIAS 0
+#define ADAPTIVE_ANTIALIAS 0
 #define REFLECTION 1
 #define GLOSSY_REFLECTION 1
 #define REFRACTION 1
@@ -80,7 +81,7 @@ void A4_Render(
     
 //    glm::vec4 origin, direction, direction1, direction2, direction3, direction4, direction5, direction6, direction7, direction8, direction9;
 //    glm::vec3 color, color1, color2, color3, color4, color5, color6, color7, color8, color9, col_sum;
-    glm::vec3 col_sum;
+    glm::vec3 col_sum, col_sum_adaptive;
     glm::vec3 color = glm::vec3(0);
 
     
@@ -96,7 +97,7 @@ void A4_Render(
     #pragma omp parallel for schedule(dynamic, 1) private(color)
 	
 	for (uint y = 0; y < h; ++y) {
-		std::cout << "num thread: " <<		omp_get_num_threads() << std::endl;
+        std::cout << "num thread: " <<        omp_get_num_threads() << std::endl;
 
 		for (uint x = 0; x < w; ++x) {
 //            // Red: increasing from top to bottom
@@ -161,6 +162,8 @@ void A4_Render(
                 image(x, y, 0) = col_sum.r;
                 image(x, y, 1) = col_sum.g;
                 image(x, y, 2) = col_sum.b;
+            } else if (ADAPTIVE_ANTIALIAS){
+                
             } else {
                 glm::vec4 world_coord = pixelToWorld(glm::vec3(x, y, 0), transformation);
                 glm::vec4 direction = (world_coord - origin);
@@ -217,7 +220,7 @@ Color rayColor(const Ray& r, const std::list<Light *> & lights, int counter, Pho
         col += hit_info.phong_mat->m_kd * AmbientLight;
         
         if (hit_info.phong_mat->m_kd != glm::vec3(0)) {
-            col += directLight(lights, hit_info, counter);
+            col += directLight(lights, hit_info, counter, temp_phong);
         }
         
        
@@ -297,7 +300,7 @@ Color rayColor(const Ray& r, const std::list<Light *> & lights, int counter, Pho
 }
 
 
-Color directLight(const std::list<Light *>& lights, HitInformation& hit_info, int counter) {
+Color directLight(const std::list<Light *>& lights, HitInformation& hit_info, int counter, PhongMaterial* phong) {
     Color col = glm::vec3(0);
     Color col_sum = glm::vec3(0);
     
@@ -324,8 +327,10 @@ Color directLight(const std::list<Light *>& lights, HitInformation& hit_info, in
     intersection_normal = (hit_info.normal);
     glm::vec3 kd, ks;
     
-    kd = hit_info.phong_mat->m_kd;
-    ks = hit_info.phong_mat->m_ks;
+//    kd = hit_info.phong_mat->m_kd;
+//    ks = hit_info.phong_mat->m_ks;
+    kd = phong->m_kd;
+    ks = phong->m_ks;
     
     
     for (const Light* light : lights) {
@@ -398,7 +403,7 @@ Color directLight(const std::list<Light *>& lights, HitInformation& hit_info, in
                 glm::vec3 n = glm::normalize(glm::vec3(hit_info.normal));
                 glm::vec3 rr = ri - 2 * n * glm::dot(ri, n);
                 l_dot_n = glm::dot(rr, glm::normalize(glm::vec3(shadow_ray_direction))) > 0.0 ? glm::dot(rr, glm::normalize(glm::vec3(shadow_ray_direction))) : 0.0;
-                double phong_coeff = std::pow(l_dot_n, hit_info.phong_mat->m_shininess);
+                double phong_coeff = std::pow(l_dot_n, phong->m_shininess);
                 col_sum += phong_coeff * ks * light->colour;
             }
         }
