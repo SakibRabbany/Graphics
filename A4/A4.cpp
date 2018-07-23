@@ -183,8 +183,8 @@ void A4_Render(
                     
                     glm::vec3 depth_col = glm::vec3(0);
                     
-                    for (int i = 0 ; i < NUM_DEPTH_RAYS < ++i) {
-                        depth_ray_dir = perturbe(direction, direction, 1000.0);
+                    for (int i = 0 ; i < NUM_DEPTH_RAYS ; ++i) {
+                        depth_ray_dir = perturbe(direction, direction, 500000.0);
                         Ray depth_ray = Ray(origin, depth_ray_dir);
                         depth_col += rayColor(depth_ray, lights, 0, PhongMaterial::Air, nullptr);
                         
