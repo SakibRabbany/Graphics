@@ -10,15 +10,36 @@ premake4 gmake
 make
 
 To run the program run the following command:
-./A4 Assets/<lua script name>
+./A4 <path to lua script>
 
-Tested the assignment on gl17.student.cs in the graphics lab.
+Tested the assignment on gl10.student.cs in the graphics lab.
 
+Features:
+- Reflection
+- Glossy Reflection
+- Refraction
+- Glossy refraction
+- Adaptive Antialias
+- Primitives (cone and cylinder)
+- Softshadows (dependant on light)
+- Texture Mapping (dependant on if the texture is set to the geometry)
 
 Additional Notes:
-- Bounding box not implemented
-- unique scene not provided, hence no test script
-- additional feature: antialiasing (9 rays through each pixel)
-- starry night background
-- hierarchical ray tracing implement but issues with illumination
+- By default all features are turned on.
+- If Antialias is turned on, adaptive antialias will not work. It is either or.
+- You can go into A4.cpp and toggle the options that are defined by the macros.
+	You have to make the program after.
+- Lua scripts that display the implemented features are in the Submission folder
+	along with the renderings of each of the scripts.
+
+Modifications:
+- gr.area_light({x, y, z}, {r, g, b}, {c1, c2, c3}, r) : creates an area light 
+							(z - plane aligned) with radius r
+- gr.set_material(ks, ks, shininess, glossy_coefficient, refractive_index) : where 								glossy_coefficient is a vec4 where
+							x -> reflectance
+							y -> relfective glossy coefficient
+							z -> refractance
+							w -> refractance glossy coefficient
+- gr.set_texture("filename"): the texture file (has to be png)
+
 

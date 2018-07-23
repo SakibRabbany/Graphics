@@ -4,7 +4,7 @@
 #include "A4.hpp"
 #include "Ray.hpp"
 #include <random>
-#include <omp.h>
+//#include <omp.h>
 
 
 #define DISTANCE_T0_IMAGE_PLANE 10
@@ -99,10 +99,10 @@ void A4_Render(
 	size_t h = image.height();
 	size_t w = image.width();
     
-    #pragma omp parallel for schedule(dynamic, 1) private(adaptive_col_sum)
+    //#pragma omp parallel for schedule(dynamic, 1) private(adaptive_col_sum)
 	
 	for (uint y = 0; y < h; ++y) {
-        std::cout << "num thread: " <<        omp_get_num_threads() << std::endl;
+        //std::cout << "num thread: " <<        omp_get_num_threads() << std::endl;
 
 		for (uint x = 0; x < w; ++x) {
 //            // Red: increasing from top to bottom
@@ -665,15 +665,7 @@ double getRandomDouble (double min, double max) {
 }
 
 glm::vec4 getRefractedDirection(const glm::vec4& incident_direction, const glm::vec4& normal, double n_i, double n_t) {
-//    double tir = 1 - (pow((n_i/n_t), 2) * (1 - pow(glm::dot(incident_direction, normal), 2)));
-//
-//    if (tir < 0) {
-//        // return reflected ray
-//    }
-//
-//    return (-(n_i/n_t) * glm::dot(incident_direction, normal) - sqrt(tir)) * normal + (n_i/n_t) * incident_direction;
-    
-//    Ray normalizedRay(ray.origin, glm::normalize(ray.direction));
+
     glm::vec4 normalized_direction = glm::normalize(incident_direction);
     glm::vec4 normalized_normal = glm::normalize(normal);
     double nr = n_i / n_t;
@@ -682,32 +674,10 @@ glm::vec4 getRefractedDirection(const glm::vec4& incident_direction, const glm::
     double sineTheta_i_t2 = 1 - cosineTheta_i * cosineTheta_i;
     double sineTheta_t_t2 = nr * nr * sineTheta_i_t2;
     
-//    std::cout << "---------------------------" << std::endl;
-//    std::cout << "Incoming refractive index: " << intersection.fromMaterial->m_refractive_index << std::endl;
-//    std::cout << "Incoming angle: " << glm::degrees(glm::acos(cosineTheta_i)) << std::endl;
-//    std::cout << "To refractive index: " << intersection.material->m_refractive_index << std::endl;
-//    std::cout << "Refracted angle: " << glm::degrees(glm::asin(sqrt(sineTheta_t_t2))) << std::endl;
-//#endif
-//
-//    if (sineTheta_t_t2 > 1) {
-//        // Total internal reflection.
-//#if DEBUG
-//        std::cout << "TIR" << std::endl;
-//#endif
-//        return Ray({0,0,0,1}, {0,0,0,0});
-//    }
-    
-    //    auto direction = (nr * cosineTheta_i - sqrt(1 - sineTheta_t_t2)) * intersection.normal - nr * normalizedRay.direction;
+
     auto direction = nr * normalized_direction + (nr * cosineTheta_i - sqrt(1 - sineTheta_t_t2)) * normalized_normal;
     direction = glm::normalize(direction);
-//    assert(std::abs(direction.w) < EPSILON);
-//    assert(intersection.t > 0);
-//    glm::dvec4 hitpoint = ray.origin + ray.direction * intersection.t;
-    
-//    Ray r(hitpoint + EPSILON * direction, direction);
-//#if DEBUG
-//    std::cout << "Real refracted angle: " << glm::degrees( glm::acos(glm::dot(r.direction, -intersection.normal)) ) << std::endl;
-//#endif
+
     
     return direction;
 }
