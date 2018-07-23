@@ -711,13 +711,13 @@ glm::vec3 variance(const std::vector<glm::vec3>& colors){
     
     for (auto color : colors) {
         auto a = color - mean;
-        a.x = pow((double)a.x, 2);
-        a.y = pow((double)a.y, 2);
-        a.z = pow((double)a.z, 2);
+        a.x = (float)pow((double)a.x, 2);
+        a.y = (float)pow((double)a.y, 2);
+        a.z = (float)pow((double)a.z, 2);
         numerator += a;
     }
     
-    return numerator/colors.size()-1;
+    return numerator/float(colors.size()-1);
 }
 
 
