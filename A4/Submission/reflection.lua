@@ -27,26 +27,52 @@ scene_root = gr.node('root')
 sphere1 = gr.sphere('sphere1')
 scene_root:add_child(sphere1)
 sphere1:set_material(mirror)
-sphere1:scale(60, 60, 60)
-sphere1:translate(-100, -100, -500)
+sphere1:scale(130, 130, 130)
+sphere1:translate(-200, -200, -600)
 
 sphere2 = gr.sphere('sphere2')
 scene_root:add_child(sphere2)
 sphere2:set_material(mirror)
-sphere2:scale(60, 60, 60)
-sphere2:translate(-100, -100, -500)
+sphere2:scale(130, 130, 130)
+sphere2:translate(-200, 200, -600)
 
 sphere3 = gr.sphere('sphere3')
 scene_root:add_child(sphere3)
 sphere3:set_material(mirror)
-sphere3:scale(60, 60, 60)
-sphere3:translate(-100, -100, -500)
+sphere3:scale(130, 130, 130)
+sphere3:translate(200, -200, -600)
 
 sphere4 = gr.sphere('sphere4')
 scene_root:add_child(sphere4)
 sphere4:set_material(mirror)
-sphere4:scale(60, 60, 60)
-sphere4:translate(-100, -100, -500)
+sphere4:scale(130, 130, 130)
+sphere4:translate(200, 200, -600)
+
+--cylinder1 = gr.cylinder('cylinder1')
+--scene_root:add_child(cylinder1)
+--cylinder1:set_material(mirror)
+--cylinder1:scale(80, 80, 80)
+--cylinder1:translate(0, -200, -600)
+
+--cylinder2 = gr.cylinder('cylinder2')
+--scene_root:add_child(cylinder2)
+--cylinder2:set_material(mirror)
+--cylinder2:scale(80, 80, 80)
+--cylinder2:translate(200, 0, -600)
+
+--cylinder3 = gr.cylinder('cylinder3')
+--scene_root:add_child(cylinder3)
+--cylinder3:set_material(mirror)
+--cylinder3:scale(80, 80, 80)
+--cylinder3:translate(-200, 0, -600)
+
+--cylinder4 = gr.cylinder('cylinder4')
+--scene_root:add_child(cylinder4)
+--cylinder4:set_material(mirror)
+--cylinder4:scale(80, 80, 80)
+--cylinder4:translate(0, 200, -600)
+
+
 
 --cube = gr.cube('cube')
 --scene_root:add_child(cube)
@@ -118,4 +144,4 @@ al_or = gr.area_light({400.0, 100.0, 150.0}, {0.7, 0.0, 0.7}, {1, 0, 0}, 15)
 
 gr.render(scene_root, 'reflection.png', 512, 512,
 	  {0, 0, 800}, {0, 0, -1}, {0, 1, 0}, 50,
-	  {0.3, 0.3, 0.3}, {my_light})
+	  {0.3, 0.3, 0.3}, {my_light, my_light_2})

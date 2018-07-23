@@ -288,11 +288,11 @@ Color rayColor(const Ray& r, const std::list<Light *> & lights, int counter, Pho
             }
         }
     } else {
-//        int number = rand_int(1, 100);
-//        if (number == 1)
-//            col = glm::vec3(1,1,1);
-//        else
-//            col = glm::vec3(0,0,0);
+        int number = rand_int(1, 100);
+        if (number == 1)
+            col = glm::vec3(1,1,1);
+        else
+            col = glm::vec3(0,0,0);
     }
     
     return col;

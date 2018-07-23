@@ -37,11 +37,11 @@ RasterImage::RasterImage(std::string file_name) : Texture() {
 RasterImage::~RasterImage(){}
 
 glm::vec3 RasterImage::getColor(double u, double v) {
-    std::cout << "in raster image" << std::endl;
+    //std::cout << "in raster image" << std::endl;
     double di, dj;
     int x, y;
     
-    std::cout << "u: " << u << "v: " << v << std::endl;
+    //std::cout << "u: " << u << "v: " << v << std::endl;
     
     di = (m_width - 1) * u;
     dj = (m_height - 1) * v;
