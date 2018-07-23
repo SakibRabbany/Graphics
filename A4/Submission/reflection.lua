@@ -9,7 +9,14 @@
 red_wall = gr.material( {0.44, 0.137, 0.1886}, {0, 0, 0}, 25, {0,0,0,0}, 0.0)
 green_wall = gr.material( {0.1386, 0.1327, 0.45}, {0, 0, 0}, 25,{0,0,0,0}, 0.0)
 grey_wall = gr.material( {0.4649, 0.4823, 0.5002}, {0, 0, 0}, 25,{0,0,0,0}, 0.0)
-rand_wall = gr.material( {0.1274, 0.8756, 0.5463}, {0, 0, 0}, 25,{0,0,0,0}, 0.0)
+light_wall = gr.material( {0.223, 0.498, 0.858}, {0, 0, 0}, 25,{0,0,0,0}, 0.0)
+brown = gr.material( {0.203, 0.356, 0.184}, {0, 0, 0}, 25,{0,0,0,0}, 0.0)
+red = gr.material( {0.835, 0.141, 0.101}, {0, 0, 0}, 25,{0,0,0,0}, 0.0)
+
+magenta = gr.material( {0.835, 0.101, 0.698}, {0, 0, 0}, 25,{0,0,0,0}, 0.0)
+mat3  = gr.material({1.0, 0.6, 0.1}, {0.5, 0.7, 0.5}, 25,{0,0,0,0}, 0.0)	
+mat4  = gr.material({0.7, 0.6, 1.0}, {0.5, 0.4, 0.8}, 25,{0,0,0,0}, 0.0)		
+
 
 mirror = gr.material( {0.0, 0.0, 0.0},   {1.0, 1.0, 1.0},	25,{0,0,0,0}, 0.0)
 
@@ -17,11 +24,47 @@ glass = gr.material( {0.05, 0.05, 0.05}, {0.7, 0.7, 0.7}, 25, {0,0,0,0}, 1.5)
 
 scene_root = gr.node('root')
 
-mirror_sphere1 = gr.sphere('mirror_sphere1')
-scene_root:add_child(mirror_sphere1)
-mirror_sphere1:set_material(mirror)
-mirror_sphere1:scale(120, 120, 120)
-mirror_sphere1:translate(0, 0, 400)
+sphere1 = gr.sphere('sphere1')
+scene_root:add_child(sphere1)
+sphere1:set_material(mirror)
+sphere1:scale(60, 60, 60)
+sphere1:translate(-100, -100, -500)
+
+sphere2 = gr.sphere('sphere2')
+scene_root:add_child(sphere2)
+sphere2:set_material(mirror)
+sphere2:scale(60, 60, 60)
+sphere2:translate(-100, -100, -500)
+
+sphere3 = gr.sphere('sphere3')
+scene_root:add_child(sphere3)
+sphere3:set_material(mirror)
+sphere3:scale(60, 60, 60)
+sphere3:translate(-100, -100, -500)
+
+sphere4 = gr.sphere('sphere4')
+scene_root:add_child(sphere4)
+sphere4:set_material(mirror)
+sphere4:scale(60, 60, 60)
+sphere4:translate(-100, -100, -500)
+
+--cube = gr.cube('cube')
+--scene_root:add_child(cube)
+--cube:set_material(mirror)
+--cube:scale(80, 80, 80)
+--cube:translate(-140, 60, 60)
+
+--cone = gr.cone('cone')
+--scene_root:add_child(cone)
+--cone:set_material(mirror)
+--cone:scale(60, 120, 60)
+--cone:translate(100, -160, 100)
+
+--cylinder = gr.cylinder('cylinder')
+--scene_root:add_child(cylinder)
+--cylinder:set_material(mirror)
+--cylinder:scale(60, 50, 60)
+--cylinder:translate(100, 100, 100)
 
 
 -- b1 = gr.cube('b1')
@@ -53,11 +96,11 @@ rightwall:set_material(grey_wall)
 
 topwall = gr.nh_box('topwall', {-500, 500, -1000}, 1000)
 scene_root:add_child(topwall)
-topwall:set_material(rand_wall)
+topwall:set_material(light_wall)
 
 bottomwall = gr.nh_box('bottomwall', {-500, -1500, -1000}, 1000)
 scene_root:add_child(bottomwall)
-bottomwall:set_material(rand_wall)
+bottomwall:set_material(light_wall)
 -- bottomwall:set_texture("Assets/sample3.png")
 
 
@@ -66,12 +109,13 @@ white_light = gr.light({-100.0, 150.0, 400.0}, {0.9, 0.9, 0.9}, {1, 0, 0})
 orange_light = gr.light({400.0, 100.0, 150.0}, {0.7, 0.0, 0.7}, {1, 0, 0})
 
 my_light = gr.light({100, 0, 800}, {0.9, 0.9, 0.9}, {1, 0, 0})
+my_light_2 = gr.light({-200, 200, 500}, {0.7, 0.0, 0.7}, {1, 0, 0})
 
 
 al_wh = gr.area_light({-100.0, 150.0, 400.0}, {0.9, 0.9, 0.9}, {1, 0, 0}, 15)
 al_or = gr.area_light({400.0, 100.0, 150.0}, {0.7, 0.0, 0.7}, {1, 0, 0}, 15)
 
 
-gr.render(scene_root, 'remake.png', 256, 256,
+gr.render(scene_root, 'reflection.png', 512, 512,
 	  {0, 0, 800}, {0, 0, -1}, {0, 1, 0}, 50,
 	  {0.3, 0.3, 0.3}, {my_light})

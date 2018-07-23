@@ -10,14 +10,14 @@
 #define DISTANCE_T0_IMAGE_PLANE 10
 #define MAX_BOUNCE 5
 #define EPSILON 0.01
-#define ANTIALIAS 0
+#define ANTIALIAS 1
 #define ADAPTIVE_ANTIALIAS 0
 #define REFLECTION 1
 #define GLOSSY_REFLECTION 1
 #define REFRACTION 1
 #define GLOSSY_REFRACTION 1
 
-#define NUM_SHADOW_RAY 15
+#define NUM_SHADOW_RAY 30
 #define NUM_GLOSSY_REFLECTION_RAY 20
 #define NUM_GLOSSY_REFRACTION_RAY 20
 
@@ -94,7 +94,7 @@ void A4_Render(
 	size_t h = image.height();
 	size_t w = image.width();
     
-    #pragma omp parallel for schedule(dynamic, 1) private(color)
+    #pragma omp parallel for schedule(dynamic, 1) private(col_sum)
 	
 	for (uint y = 0; y < h; ++y) {
         std::cout << "num thread: " <<        omp_get_num_threads() << std::endl;
@@ -343,6 +343,8 @@ Color directLight(const std::list<Light *>& lights, HitInformation& hit_info, in
         num_shadow_ray = light->is_point_source ? 1 : NUM_SHADOW_RAY;
         
         col_sum = glm::vec3(0);
+
+	
         
         for (int i = 0 ; i < num_shadow_ray ; i++) {
             light_position = glm::vec4(light->getLightPosition(), 1);
