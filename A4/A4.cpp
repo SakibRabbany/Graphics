@@ -11,7 +11,7 @@
 #define MAX_BOUNCE 5
 #define EPSILON 0.01
 #define ANTIALIAS 0
-#define ADAPTIVE_ANTIALIAS 0
+#define ADAPTIVE_ANTIALIAS 1
 #define ADAPTIVE_THRESHOLD 0.2
 #define REFLECTION 1
 #define GLOSSY_REFLECTION 1
@@ -99,7 +99,7 @@ void A4_Render(
 	size_t h = image.height();
 	size_t w = image.width();
     
-    #pragma omp parallel for schedule(dynamic, 1) private(col_sum)
+    #pragma omp parallel for schedule(dynamic, 1) private(adaptive_col_sum)
 	
 	for (uint y = 0; y < h; ++y) {
         std::cout << "num thread: " <<        omp_get_num_threads() << std::endl;
