@@ -12,6 +12,7 @@
 #define EPSILON 0.01
 #define ANTIALIAS 0
 #define ADAPTIVE_ANTIALIAS 0
+#define ADAPTIVE_THRESHOLD 0.2
 #define REFLECTION 1
 #define GLOSSY_REFLECTION 1
 #define REFRACTION 1
@@ -26,6 +27,8 @@
 
 static SceneNode* m_root;
 static int pixel_count = 0;
+static int adaptive_count = 0;
+
 static glm::vec3 AmbientLight;
 
 static std::default_random_engine generator;
@@ -83,7 +86,7 @@ void A4_Render(
     
 //    glm::vec4 origin, direction, direction1, direction2, direction3, direction4, direction5, direction6, direction7, direction8, direction9;
 //    glm::vec3 color, color1, color2, color3, color4, color5, color6, color7, color8, color9, col_sum;
-    glm::vec3 col_sum, adaptive_col_sumcol_sum;
+    glm::vec3 col_sum, adaptive_col_sum;
     glm::vec3 color = glm::vec3(0);
 
     
@@ -180,10 +183,10 @@ void A4_Render(
                 Ray adaptive_r7 = Ray(origin, adaptive_direction7);
                 Ray adaptive_r9 = Ray(origin, adaptive_direction9);
                 
-                glm::vec3 adaptive_color1 = rayColor(r1, lights, 0, PhongMaterial::Air, nullptr);
-                glm::vec3 adaptive_color3 = rayColor(r3, lights, 0, PhongMaterial::Air, nullptr);
-                glm::vec3 adaptive_color7 = rayColor(r7, lights, 0, PhongMaterial::Air, nullptr);
-                glm::vec3 adaptive_color9 = rayColor(r9, lights, 0, PhongMaterial::Air, nullptr);
+                glm::vec3 adaptive_color1 = rayColor(adaptive_r1, lights, 0, PhongMaterial::Air, nullptr);
+                glm::vec3 adaptive_color3 = rayColor(adaptive_r3, lights, 0, PhongMaterial::Air, nullptr);
+                glm::vec3 adaptive_color7 = rayColor(adaptive_r7, lights, 0, PhongMaterial::Air, nullptr);
+                glm::vec3 adaptive_color9 = rayColor(adaptive_r9, lights, 0, PhongMaterial::Air, nullptr);
 
 
                 std::vector<glm::vec3> colors;
@@ -192,34 +195,45 @@ void A4_Render(
                 colors.push_back(adaptive_color7);
                 colors.push_back(adaptive_color9);
                 
-                glm::vec4 adaptive_world_coord2 = pixelToWorld(glm::vec3(x + 1.0f/3.0f,         y,0),       transformation);
-                glm::vec4 adaptive_world_coord4 = pixelToWorld(glm::vec3(        x,       y + 1.0f/3.0f,0), transformation);
-                glm::vec4 adaptive_world_coord5 = pixelToWorld(glm::vec3(x + 1.0f/3.0f, y + 1.0f/3.0f,0), transformation);
-                glm::vec4 adaptive_world_coord6 = pixelToWorld(glm::vec3(x + 2.0f/3.0f, y + 1.0f/3.0f,0), transformation);
-                glm::vec4 adaptive_world_coord8 = pixelToWorld(glm::vec3(x + 1.0f/3.0f, y + 2.0f/3.0f,0), transformation);
+                glm::vec3 var = variance(colors);
                 
-                glm::vec4 adaptive_direction2 = (adaptive_world_coord2 - origin);
-                glm::vec4 adaptive_direction4 = (adaptive_world_coord4 - origin);
-                glm::vec4 adaptive_direction5 = (adaptive_world_coord5 - origin);
-                glm::vec4 adaptive_direction6 = (adaptive_world_coord6 - origin);
-                glm::vec4 adaptive_direction8 = (adaptive_world_coord8 - origin);
+                if (glm::length(var) > ADAPTIVE_THRESHOLD) {
+                    glm::vec4 adaptive_world_coord2 = pixelToWorld(glm::vec3(x + 1.0f/3.0f,         y,0),       transformation);
+                    glm::vec4 adaptive_world_coord4 = pixelToWorld(glm::vec3(        x,       y + 1.0f/3.0f,0), transformation);
+                    glm::vec4 adaptive_world_coord5 = pixelToWorld(glm::vec3(x + 1.0f/3.0f, y + 1.0f/3.0f,0), transformation);
+                    glm::vec4 adaptive_world_coord6 = pixelToWorld(glm::vec3(x + 2.0f/3.0f, y + 1.0f/3.0f,0), transformation);
+                    glm::vec4 adaptive_world_coord8 = pixelToWorld(glm::vec3(x + 1.0f/3.0f, y + 2.0f/3.0f,0), transformation);
+                    
+                    glm::vec4 adaptive_direction2 = (adaptive_world_coord2 - origin);
+                    glm::vec4 adaptive_direction4 = (adaptive_world_coord4 - origin);
+                    glm::vec4 adaptive_direction5 = (adaptive_world_coord5 - origin);
+                    glm::vec4 adaptive_direction6 = (adaptive_world_coord6 - origin);
+                    glm::vec4 adaptive_direction8 = (adaptive_world_coord8 - origin);
+                    
+                    
+                    Ray adaptive_r2 = Ray(origin, adaptive_direction2);
+                    Ray adaptive_r4 = Ray(origin, adaptive_direction4);
+                    Ray adaptive_r5 = Ray(origin, adaptive_direction5);
+                    Ray adaptive_r6 = Ray(origin, adaptive_direction6);
+                    Ray adaptive_r8 = Ray(origin, adaptive_direction8);
+                    
+                    glm::vec3 adaptive_color2 = rayColor(adaptive_r2, lights, 0, PhongMaterial::Air, nullptr);
+                    glm::vec3 adaptive_color4 = rayColor(adaptive_r4, lights, 0, PhongMaterial::Air, nullptr);
+                    glm::vec3 adaptive_color5 = rayColor(adaptive_r5, lights, 0, PhongMaterial::Air, nullptr);
+                    glm::vec3 adaptive_color6 = rayColor(adaptive_r6, lights, 0, PhongMaterial::Air, nullptr);
+                    glm::vec3 adaptive_color8 = rayColor(adaptive_r8, lights, 0, PhongMaterial::Air, nullptr);
+                    
+                    adaptive_col_sum = adaptive_color1 + adaptive_color2 + adaptive_color3 + adaptive_color4 + adaptive_color5 + adaptive_color6 + adaptive_color7 + adaptive_color8 + adaptive_color9;
+                    
+                    adaptive_col_sum = adaptive_col_sum/9.0;
+                    adaptive_count++;
+                    
+                } else {
+                    adaptive_col_sum = adaptive_color1 + adaptive_color3 + adaptive_color7 + adaptive_color9;
+                    
+                    adaptive_col_sum = adaptive_col_sum/4.0;
+                }
                 
-                
-                Ray adaptive_r2 = Ray(origin, adaptive_direction2);
-                Ray adaptive_r4 = Ray(origin, adaptive_direction4);
-                Ray adaptive_r5 = Ray(origin, adaptive_direction5);
-                Ray adaptive_r6 = Ray(origin, adaptive_direction6);
-                Ray adaptive_r8 = Ray(origin, adaptive_direction8);
-                
-                glm::vec3 adaptive_color2 = rayColor(r2, lights, 0, PhongMaterial::Air, nullptr);
-                glm::vec3 adaptive_color4 = rayColor(r4, lights, 0, PhongMaterial::Air, nullptr);
-                glm::vec3 adaptive_color5 = rayColor(r5, lights, 0, PhongMaterial::Air, nullptr);
-                glm::vec3 adaptive_color6 = rayColor(r6, lights, 0, PhongMaterial::Air, nullptr);
-                glm::vec3 adaptive_color8 = rayColor(r8, lights, 0, PhongMaterial::Air, nullptr);
-                
-                adaptive_col_sum = adaptive_color1 + adaptive_color2 + adaptive_color3 + adaptive_color4 + adaptive_color5 + adaptive_color6 + adaptive_color7 + adaptive_color8 + adaptive_color9;
-                
-                adaptive_col_sum = adaptive_col_sum/9.0;
                 pixel_count++;
                 
                 double prog = (double)pixel_count/(double)(image.width()*image.height());
@@ -229,6 +243,10 @@ void A4_Render(
                 image(x, y, 0) = adaptive_col_sum.r;
                 image(x, y, 1) = adaptive_col_sum.g;
                 image(x, y, 2) = adaptive_col_sum.b;
+                
+                
+                
+                
             } else {
                 glm::vec4 world_coord = pixelToWorld(glm::vec3(x, y, 0), transformation);
                 glm::vec4 direction = (world_coord - origin);
@@ -269,6 +287,7 @@ void A4_Render(
 		}
 	}
     std::cout << "done" << std::endl;
+    std::cout << "num adaptive pixel: " << adaptive_count << std::endl;
 
 }
 
