@@ -10,12 +10,14 @@
 #define DISTANCE_T0_IMAGE_PLANE 10
 #define MAX_BOUNCE 5
 #define EPSILON 0.01
-#define ANTIALIAS 1
+#define ANTIALIAS 0
 #define ADAPTIVE_ANTIALIAS 0
 #define REFLECTION 1
 #define GLOSSY_REFLECTION 1
 #define REFRACTION 1
 #define GLOSSY_REFRACTION 1
+#define DEPTH 1
+#define NUM_DEPTH_RAYS 10
 
 #define NUM_SHADOW_RAY 30
 #define NUM_GLOSSY_REFLECTION_RAY 20
@@ -176,10 +178,30 @@ void A4_Render(
                 
                 std::cout << "Progress: " << prog*100 << std::endl;
                 
-                Color rc = rayColor(r, lights, 0, PhongMaterial::Air, nullptr);
-                image(x, y, 0) = rc.r;
-                image(x, y, 1) = rc.g;
-                image(x, y, 2) = rc.b;
+                if (DEPTH) {
+                    glm::vec4 depth_ray_dir;
+                    
+                    glm::vec3 depth_col = glm::vec3(0);
+                    
+                    for (int i = 0 ; i < NUM_DEPTH_RAYS < ++i) {
+                        depth_ray_dir = perturbe(direction, direction, 1000.0);
+                        Ray depth_ray = Ray(origin, depth_ray_dir);
+                        depth_col += rayColor(depth_ray, lights, 0, PhongMaterial::Air, nullptr);
+                        
+                    }
+                    
+                    depth_col = depth_col/NUM_DEPTH_RAYS;
+                    image(x, y, 0) = depth_col.r;
+                    image(x, y, 1) = depth_col.g;
+                    image(x, y, 2) = depth_col.b;
+                } else {
+                    Color rc = rayColor(r, lights, 0, PhongMaterial::Air, nullptr);
+                    image(x, y, 0) = rc.r;
+                    image(x, y, 1) = rc.g;
+                    image(x, y, 2) = rc.b;
+                }
+                
+                
             }
 		}
 	}
