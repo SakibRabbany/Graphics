@@ -699,7 +699,7 @@ glm::vec4 getReflectedDirection(const glm::vec4& incident_direction, const glm::
 }
 
 glm::vec3 variance(const std::vector<glm::vec3>& colors){
-    glm::vec3 mean = glm::ve3(0);
+    glm::vec3 mean = glm::vec3(0);
     
     for (auto color : colors) {
         mean += color;
@@ -707,7 +707,7 @@ glm::vec3 variance(const std::vector<glm::vec3>& colors){
     
     mean /= colors.size();
     
-    glm::vec3 numerator = glm::vec(0);
+    glm::vec3 numerator = glm::vec3(0);
     
     for (auto color : colors) {
         auto a = color - mean;
