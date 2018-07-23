@@ -53,3 +53,5 @@ void hit (const Ray& r, SceneNode* root, HitInformation& hit_info);
 int rand_int(int min, int max);
 
 void updateSceneGraph();
+
+glm::vec3 variance(const std::vector<glm::vec3>& colors);
