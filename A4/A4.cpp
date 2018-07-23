@@ -16,7 +16,7 @@
 #define GLOSSY_REFLECTION 1
 #define REFRACTION 1
 #define GLOSSY_REFRACTION 1
-#define DEPTH 1
+#define DEPTH 0
 #define NUM_DEPTH_RAYS 10
 
 #define NUM_SHADOW_RAY 30
