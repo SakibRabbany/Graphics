@@ -38,6 +38,6 @@ moon:translate(-400,0,100)
 white_light = gr.light({-100.0, 150.0, 400.0}, {0.9, 0.9, 0.9}, {1, 0, 0})
 orange_light = gr.light({400.0, 100.0, 150.0}, {0.7, 0.0, 0.7}, {1, 0, 0})
 
-gr.render(scene_root, 'earth_sun_moon_animation.png', 500, 500,
-	  {0, 0, 1000}, {0, 0, -1}, {0, 1, 0}, 50,
-	  {0.3, 0.3, 0.3}, {white_light})
+-- gr.render(scene_root, 'earth_sun_moon_animation.png', 500, 500,
+-- 	  {0, 0, 1000}, {0, 0, -1}, {0, 1, 0}, 50,
+-- 	  {0.3, 0.3, 0.3}, {white_light})
