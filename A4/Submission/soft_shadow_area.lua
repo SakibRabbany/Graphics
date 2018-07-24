@@ -95,9 +95,9 @@ my_light = gr.light({100, 0, 800}, {0.9, 0.9, 0.9}, {1, 0, 0})
 al_wh = gr.area_light({-100.0, 150.0, 400.0}, {0.9, 0.9, 0.9}, {1, 0, 0}, 15)
 al_or = gr.area_light({400.0, 100.0, 150.0}, {0.7, 0.0, 0.7}, {1, 0, 0}, 15)
 
-my_al_wh = gr.area_light({0, 400, 400}, {0.9, 0.9, 0.9}, {1, 0, 0}, 15)
+my_al_wh = gr.area_light({0, 400, 400}, {0.9, 0.9, 0.9}, {1, 0, 0}, 20)
 
 
-gr.render(scene_root, 'soft_shadow.png', 512, 512,
+gr.render(scene_root, 'soft_shadow_area.png', 512, 512,
 	  {0, 0, 800}, {0, 0, -1}, {0, 1, 0}, 50,
 	  {0.3, 0.3, 0.3}, {my_al_wh})
